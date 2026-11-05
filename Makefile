@@ -2,7 +2,7 @@
 PY      := .venv/bin/python
 SV_SRCS := $(shell find rtl -name '*.sv' -not -path 'rtl/soc/*' -not -path 'rtl/eth/*' -not -path 'rtl/rs/*' 2>/dev/null)
 
-.PHONY: setup channels model-test lint sim sim-full formal fw synth impl prog ber plots reports ci clean
+.PHONY: setup channels model-ber model-test lint sim sim-full formal fw synth impl prog ber plots reports ci clean
 
 setup:
 	python3 -m venv .venv
@@ -13,9 +13,12 @@ setup:
 channels:
 	$(PY) scripts/make_channels.py
 
+model-ber:
+	$(PY) scripts/ber_model.py
+
 model-test:
 	$(PY) -m pytest -q
-	.venv/bin/mypy model/channel.py model/equalizer.py
+	.venv/bin/mypy model --exclude model/tests
 	.venv/bin/ruff check model scripts analysis
 
 lint:
@@ -23,6 +26,7 @@ lint:
 
 plots:
 	$(PY) analysis/plot_pulses.py
+	$(PY) analysis/plot_ber.py
 
 sim sim-full formal fw synth impl prog ber reports:
 	@echo "make $@: not implemented yet (see progress.md)"; exit 1
