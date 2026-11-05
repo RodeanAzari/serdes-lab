@@ -1,0 +1,3 @@
+channel,source_file,il_published_db,il_computed_db,ctle_gdc_db,ctle_gdc2_db,tx_c_m1,tx_c0,tx_c_p1,sampling_phase,main_cursor_mv,n_pre_999,n_post_999,ref_rx,ref_snr_db
+kr_ch2_19p3db,KR_1mCabledBP_TP0TP5_19p3dB_PCBHost_3p8dB_THRU.s4p,19.3,19.26,-11.0,-2.0,-0.05,0.95,-0.0,8/32,15.491,2,7,FFE16(pre3)+DFE1,30.98
+kr_ch4_31p4db,KR_1mCabledBP_TP0TP5_31p4dB_PCBHost_9p8dB_THRU.s4p,31.4,31.38,-10.0,-3.0,-0.0,1.0,-0.0,4/32,9.956,2,9,FFE16(pre3)+DFE1,27.6

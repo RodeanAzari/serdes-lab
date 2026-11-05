@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+# Raw 802.3dj S-parameter archives are not committed (see data/MANIFEST.md)
+data/raw/
+*.s4p
+*.zip
+# Vivado
+*.jou
+*.log
+.Xil/
+syn/build/
+sim_build/
+results.xml

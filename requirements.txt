@@ -1,0 +1,10 @@
+cocotb==2.1.0
+cocotb-coverage==2.0
+matplotlib==3.11.2
+mypy==2.4.1
+numpy==2.5.4
+pytest==9.2.0
+ruff==0.17.3
+scikit-rf==2.2.0
+scipy==1.18.1
+tb-common @ git+https://github.com/RodeanAzari/tb-common.git@tb-common-v0.1
