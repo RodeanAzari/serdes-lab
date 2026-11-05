@@ -18,3 +18,19 @@ ended at −(cursor + n_taps), but the combined response reaches −(n_taps − 
 far ISI tail was missing from the cost. Fix: derive the range from the index bounds.
 
 **Open:** sampling-phase rule (max main cursor vs. COM's MM phase), see ADR 0001.
+
+## 2026-11-05 (cont.): float BER waterfall
+
+- Added `model/pam4.py` (Gray map; precoder **withheld** until the 802.3 clause definition is
+  verified, §6.1), `model/link.py`, `model/stats.py`. 14 model tests, mypy strict clean.
+- 1-tap DFE with real decisions vectorised exactly: 4 speculative decisions per symbol, chain
+  resolved by log-depth prefix composition (tested equal to the sequential loop).
+- `make model-ber` (3 min): Ch2 BER 2.5e-2 @ 14 dB → 4.15e-6 @ 21 dB (216 errors);
+  Ch4 1.2e-1 @ 14 dB → 7.57e-6 @ 25 dB (212 errors). 22/26 dB points: upper bounds only.
+- Real-decision BER exceeds the Gaussian prediction. Hypothesis checked, not assumed: with the
+  true previous symbol in the DFE, BER matches the prediction within ~4%, so the whole gap is
+  error propagation: ~1.5× on Ch2 (b/h0 0.47), 3.5–4.4× on Ch4 (b/h0 0.72).
+
+**Bug 2 (caught before running).** `pam4_ser_awgn` used 1.5·erfc instead of 1.5·Q =
+0.75·erfc(x/√2), a factor-2 error in every prediction. Found on review; the ideal-channel test
+would also have failed on it.
