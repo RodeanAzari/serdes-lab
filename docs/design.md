@@ -1,6 +1,6 @@
 # Design notes
 
-## SNR definition (§6.4)
+## SNR definition (buildplan §6.4)
 
 **SNR = E[s²] / σ²**, at the ADC input, per symbol, where s is the noiseless channel output and
 σ² the variance of the added white Gaussian noise. For i.i.d. equiprobable PAM4 levels ±1, ±3

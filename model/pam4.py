@@ -1,4 +1,4 @@
-"""PAM4 Gray mapping (CLAUDE.md §6.1): 00 -> -3, 01 -> -1, 11 -> +1, 10 -> +3.
+"""PAM4 Gray mapping (docs/buildplan.md §6.1): 00 -> -3, 01 -> -1, 11 -> +1, 10 -> +3.
 
 The 1/(1+D) precoder is deliberately absent until its 802.3 definition is verified (§6.1).
 """
