@@ -86,3 +86,12 @@ would also have failed on it.
 - User chose **P = 4, N = 16, 2 instances, 125 MHz planning clock**: ~168/240 DSP (estimate;
   noise ~3 DSP/sample and MLSE 2/symbol are guesses). P = 4 lets one `fpga-rs-core` decoder
   (1 RS symbol = 5 PAM4/clock) keep up per instance.
+
+## 2026-11-06 (cont.): noise generator (ADR 0003)
+
+- Tail depth needed: BER 1e-12 = 7.0σ, 1e-15 = 7.9σ at the slicer → target reach ≥ 8σ.
+  Reach vs uniform bits: inverse-CDF 64-bit 9.08σ; Box–Muller 48-bit 8.16σ.
+- Found: the §6.4 minimum (10¹² samples to ±7σ) can only verify to ~6.5σ (2.6 expected values
+  beyond 7σ). 4×10¹³ samples (~11 h at 10⁹/s) gives ~100.
+- User chose **segmented inverse-CDF** (exact tail check from the tables, no sampling needed)
+  and the **overnight 4×10¹³** hardware histogram. All 8 lanes must feed it (one lane: ~89 h).
