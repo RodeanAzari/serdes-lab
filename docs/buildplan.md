@@ -113,7 +113,7 @@ Every phase's DoD includes **README updated, `docs/log.md` entry, that phase's m
 - [ ] Two 802.3dj channels converted to pulse responses; truncation and energy capture recorded
 - [ ] Full chain modelled; KP4 encode/decode verified against an independent Python reference
 - [x] BER curves cross-checked with serdespy (`data/results/serdespy_*.csv`, 2026-11-06)
-- [ ] DSP sizing: P, taps, instances; ADR written
+- [x] DSP sizing: P, taps, instances; ADR written (ADR 0002, 2026-11-06; real numbers after synthesis)
 - [ ] Media: pulse-response plots per channel; model BER waterfall
 
 ### Phase B — TX + channel + noise

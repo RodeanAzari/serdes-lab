@@ -78,3 +78,11 @@ would also have failed on it.
 - Trap: serdespy `FFE_BR` uses `fftconvolve(mode="same")`, centring at tap (N−1)//2, so its
   output leads run_link's by 4 symbols (net lag −2 vs TX); an alignment search over 0…40 only
   found 25.7% matches until widened to ±40.
+
+## 2026-11-06 (cont.): DSP sizing (ADR 0002)
+
+- `scripts/ffe_sizing.py` → `ffe_sizing.csv`: FFE saturates at ~12 taps; N = 16 ≤ 0.01 dB from
+  N = 32 on both channels; N = 12 costs 0.12 dB on Ch4, N = 8 0.46 / 0.77 dB.
+- User chose **P = 4, N = 16, 2 instances, 125 MHz planning clock**: ~168/240 DSP (estimate;
+  noise ~3 DSP/sample and MLSE 2/symbol are guesses). P = 4 lets one `fpga-rs-core` decoder
+  (1 RS symbol = 5 PAM4/clock) keep up per instance.
