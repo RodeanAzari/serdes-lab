@@ -8,4 +8,5 @@ pytest==9.2.0
 ruff==0.17.3
 scikit-rf==2.2.0
 scipy==1.18.1
+serdespy==1.0
 tb-common @ git+https://github.com/RodeanAzari/tb-common.git@tb-common-v0.1

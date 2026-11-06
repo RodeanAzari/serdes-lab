@@ -2,7 +2,7 @@
 PY      := .venv/bin/python
 SV_SRCS := $(shell find rtl -name '*.sv' -not -path 'rtl/soc/*' -not -path 'rtl/eth/*' -not -path 'rtl/rs/*' 2>/dev/null)
 
-.PHONY: setup channels model-ber model-test lint sim sim-full formal fw synth impl prog ber plots reports ci clean
+.PHONY: setup channels model-ber xcheck model-test lint sim sim-full formal fw synth impl prog ber plots reports ci clean
 
 setup:
 	python3 -m venv .venv
@@ -15,6 +15,9 @@ channels:
 
 model-ber:
 	$(PY) scripts/ber_model.py
+
+xcheck:  # serdespy cross-check (buildplan §8); needs data/raw from `make channels`
+	$(PY) scripts/serdespy_xcheck.py
 
 model-test:
 	NUMBA_NUM_THREADS=1 $(PY) -m pytest -q  # threaded numba spin-waits under shared CPU load: 13 min vs 13 s
