@@ -1,5 +1,6 @@
 cocotb==2.1.0
 cocotb-coverage==2.0
+galois==0.4.11
 matplotlib==3.11.2
 mypy==2.4.1
 numpy==2.5.4

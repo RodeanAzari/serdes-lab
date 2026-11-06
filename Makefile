@@ -17,7 +17,7 @@ model-ber:
 	$(PY) scripts/ber_model.py
 
 model-test:
-	$(PY) -m pytest -q
+	NUMBA_NUM_THREADS=1 $(PY) -m pytest -q  # threaded numba spin-waits under shared CPU load: 13 min vs 13 s
 	.venv/bin/mypy model --exclude model/tests
 	.venv/bin/ruff check model scripts analysis
 

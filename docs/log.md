@@ -42,3 +42,24 @@ would also have failed on it.
   phase; MM phase 0.04–1.08 dB. User rule (≤ 0.5 dB) → **keep max-cursor**. ADR 0001 resolved.
 - Noted: 0.14 dB ref-SNR offset on Ch2 between the sweep and `channels.csv`, traced to the crop
   window in the reflection tail (sidecar).
+
+## 2026-11-06: KP4 RS(544,514) golden model
+
+- Committed last session's work: buildplan split (`0bb6f21`), sweep script (`3dad5b8`), sweep
+  results (`ffdddcb`, re-run on clean tree, byte-identical).
+- `model/rs.py`: GF(2¹⁰) (x¹⁰+x³+1), systematic encoder, BM/Chien/Forney decoder that reports
+  detected failures (−1), RS symbol ↔ 5 PAM4 symbols (MSB first). Golden reference for
+  `fpga-rs-core`'s output only; no RTL decoder here (§12).
+- Independent reference: `galois` 0.4.11 (parent RS(1023,993), c=0, shortened). Tests: generator,
+  encoder, 0…15 errors, edge positions, 16/17/20/30/60 errors (success/fail and outputs agree
+  with galois), miscorrection, c(α^j)=0 from the definition, alignment, bad input. 19 tests.
+- Bug injection: Chien off-by-one, syndrome fcr=1, generator fcr=1, Forney missing X, encoder
+  feedback tap, LSB-first bits, BM length rule: all caught (1–11 failures each). Removing any
+  one failure check (deg Λ > t, Chien root count, final syndrome re-check) is not caught: they
+  overlap. Removing root count + syndrome re-check together: 5 tests fail. All three kept on
+  purpose: deg > t defines bounded-distance decoding (as in hardware); an undetected failure
+  would silently understate CER.
+- **Bug 3 (tooling).** Symptom: identical test runs took 16 s to 13 min 44 s (179 CPU-min) with
+  load ~16 on 16 cores from other sessions. Root cause: galois' threaded numba kernels
+  spin-wait when the CPU is oversubscribed. Fix: `NUMBA_NUM_THREADS=1` in `make model-test`;
+  same load, `make ci` 16.6 s wall / 18.7 s CPU.
