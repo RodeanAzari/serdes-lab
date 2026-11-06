@@ -63,3 +63,18 @@ would also have failed on it.
   load ~16 on 16 cores from other sessions. Root cause: galois' threaded numba kernels
   spin-wait when the CPU is oversubscribed. Fix: `NUMBA_NUM_THREADS=1` in `make model-test`;
   same load, `make ci` 16.6 s wall / 18.7 s CPU.
+
+## 2026-11-06 (cont.): serdespy cross-check
+
+- `make xcheck` (`scripts/serdespy_xcheck.py`, run at `0837fd4`, re-run reproduces exactly).
+- **SDD21:** serdespy vs ours, IL @ 53.12 GHz 19.267 / 31.375 dB on both; max 0.05 dB residual
+  traced to serdespy using S32 for S23 in its port reorder (substitution → 1.6e-16 match).
+- **Statistical BER** (independent generators and equaliser engine, same pulse/taps): 8 points
+  1.4e-3 … 4e-6, all |z| ≤ 1.63 with batch-means SE (DFE bursts make binomial CIs too narrow).
+- **Paired BER** (identical bits + noise into serdespy's FFE/DFE/slicer/demap): identical error
+  counts in 80/80 chunks. Settles the 0.67/0.82 ratios at the two lowest points as generator
+  statistics, not model error.
+- Not cross-checked by serdespy (it has none): CTLE, MMSE solver, SNR definition.
+- Trap: serdespy `FFE_BR` uses `fftconvolve(mode="same")`, centring at tap (N−1)//2, so its
+  output leads run_link's by 4 symbols (net lag −2 vs TX); an alignment search over 0…40 only
+  found 25.7% matches until widened to ±40.

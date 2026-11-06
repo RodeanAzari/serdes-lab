@@ -1,0 +1,3 @@
+channel,f_nyquist_ghz,il_nyquist_db_model,il_nyquist_db_serdespy,max_abs_diff_db_to_67ghz,max_abs_phase_diff_deg_to_67ghz
+kr_ch2_19p3db,53.12,19.267,19.267,0.04703041984570433,0.08009307781958354
+kr_ch4_31p4db,53.12,31.375,31.375,0.050896137697158395,0.0631271902824088
