@@ -34,3 +34,11 @@ far ISI tail was missing from the cost. Fix: derive the range from the index bou
 **Bug 2 (caught before running).** `pam4_ser_awgn` used 1.5·erfc instead of 1.5·Q =
 0.75·erfc(x/√2), a factor-2 error in every prediction. Found on review; the ideal-channel test
 would also have failed on it.
+
+## 2026-11-05 (cont.): sampling-phase sweep
+
+- Commits: `31546f5` (model), `de166b6` (BER results re-run on clean tree, identical numbers).
+- Phase sweep, 32 phases × 2 channels × 2 noise levels: max-cursor 0.18–0.25 dB below the best
+  phase; MM phase 0.04–1.08 dB. User rule (≤ 0.5 dB) → **keep max-cursor**. ADR 0001 resolved.
+- Noted: 0.14 dB ref-SNR offset on Ch2 between the sweep and `channels.csv`, traced to the crop
+  window in the reflection tail (sidecar).

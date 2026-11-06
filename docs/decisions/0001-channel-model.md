@@ -1,6 +1,6 @@
 # ADR 0001: Channel-model construction
 
-**Status:** accepted 2026-11-05 (one open question, below). **Phase:** A.
+**Status:** accepted 2026-11-05. **Phase:** A.
 
 ## Decision
 
@@ -16,8 +16,8 @@
 | TX FIR | 3 taps, c(−1), c(+1) ∈ [−0.30, 0] step 0.05, c(0) = 1 − \|c(−1)\| − \|c(+1)\| | Small, conventional. Optimiser chose ~flat taps on both channels: the RX FFE does the work |
 | Selection | Grid search maximising MMSE SNR of a reference RX (16-tap FFE, 3 pre, 1-tap DFE) | COM-style. Reference RX is **not** the sized RTL equalizer (separate ADR) |
 | Selection noise | One-sided η₀ = 8.2e-9 V²/GHz input-referred, shaped by CTLE × RX filter; A_v = 0.413 V | 802.3ck COM reference values, **[verify against 802.3dj]**. Used only to pick CTLE/TX FIR |
-| Sampling | 32 samples/UI, phase maximising main cursor | CLAUDE.md §6.3 |
-| Truncation | Smallest window holding ≥ 99.9% of pulse energy | CLAUDE.md §6.3 |
+| Sampling | 32 samples/UI, phase maximising main cursor | docs/buildplan.md §6.3 |
+| Truncation | Smallest window holding ≥ 99.9% of pulse energy | docs/buildplan.md §6.3 |
 
 Results (from [`channels.csv`](../../data/results/channels.csv)):
 
@@ -41,9 +41,23 @@ noise **colour** after the CTLE is neglected in emulation; this is a stated appr
   LUTs and a harder tail-validation problem. Revisit only if serdespy cross-check disagrees.
 - **Fix CTLE/TX FIR by hand**: not reproducible.
 
-## Open question
+## Sampling phase: resolved 2026-11-05
 
-**Sampling phase.** Max-main-cursor sampling gives large first pre-cursors (h−1/h0 = 0.39 and
-0.52). COM uses a Mueller–Müller-style phase (h−1 ≈ h+1), which is closer to what a real
-baud-rate CDR locks to. The choice moves every BER number. CLAUDE.md §6.3 specifies max main
-cursor; keep it unless the user decides otherwise.
+Question: max-main-cursor sampling gives large first pre-cursors (h−1/h0 = 0.39, 0.52). Is it
+far from the phase a real receiver would want? Decided by measurement: post-EQ SNR of the
+reference RX at all 32 phases ([`phase_sweep.csv`](../../data/results/phase_sweep.csv),
+`scripts/phase_sweep.py`), at the thermal reference noise and at an operating point near
+BER 1e-4. **Rule (user): keep max-cursor if within 0.5 dB of the best phase everywhere.**
+
+| Channel | Noise | Best SNR | Max-cursor gap | COM/MM (h−1 = h+1) gap |
+|---|---|---|---|---|
+| Ch2 | thermal ref | 31.08 dB | 0.24 dB | 0.23 dB |
+| Ch2 | 19 dB input | 18.16 dB | 0.20 dB | 1.08 dB |
+| Ch4 | thermal ref | 27.86 dB | 0.25 dB | 0.04 dB |
+| Ch4 | 23 dB input | 18.35 dB | 0.18 dB | 0.38 dB |
+
+**Decision: keep max-main-cursor (docs/buildplan.md §6.3).** Within 0.25 dB of the best phase in all
+four cases; the MM phase is not consistently closer and is 1.08 dB off on Ch2 at the operating
+point. Caveat: CTLE/TX FIR were held at their max-cursor values; re-optimising them per phase
+could favour another phase slightly. Rejected: MM phase (more CDR-like, not better here);
+per-run best-phase search (noise-dependent channel, breaks comparability across SNR).
