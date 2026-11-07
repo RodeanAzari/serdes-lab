@@ -2,7 +2,7 @@
 PY      := .venv/bin/python
 SV_SRCS := $(shell find rtl -name '*.sv' -not -path 'rtl/soc/*' -not -path 'rtl/eth/*' -not -path 'rtl/rs/*' 2>/dev/null)
 
-.PHONY: setup channels model-ber xcheck model-test lint sim sim-full formal fw synth impl prog ber plots reports ci clean
+.PHONY: setup channels model-kp4 model-ber xcheck model-test lint sim sim-full formal fw synth impl prog ber plots reports ci clean
 
 setup:
 	python3 -m venv .venv
@@ -12,6 +12,9 @@ setup:
 
 channels:
 	$(PY) scripts/make_channels.py
+
+model-kp4:  # KP4 statistics, float model (~30 min)
+	NUMBA_NUM_THREADS=1 $(PY) scripts/kp4_model.py
 
 model-ber:
 	$(PY) scripts/ber_model.py
