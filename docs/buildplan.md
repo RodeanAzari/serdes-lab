@@ -110,13 +110,14 @@ Hardware error counts must match the model's statistics (not bit-for-bit, since 
 Every phase's DoD includes **README updated, `docs/log.md` entry, that phase's media captured (§13.1), and the user confirming physical captures**.
 
 ### Phase A — Python model + sizing
-- [ ] Two 802.3dj channels converted to pulse responses; truncation and energy capture recorded
-- [ ] Full chain modelled; KP4 encode/decode verified against an independent Python reference
+- [x] Two 802.3dj channels converted to pulse responses; truncation and energy capture recorded (ADR 0001, `channels.csv`)
+- [x] Full chain modelled (end-to-end KP4 link + §7.2 statistics, `kp4_model.csv`, 2026-11-07); KP4 encode/decode verified against an independent Python reference (`galois`). *Amended 2026-11-07 (user decision): the MLSE model moves to Phase F and the bit-exact payload PRBS / noise uniform source to Phase B; each is still modelled before its RTL.*
 - [x] BER curves cross-checked with serdespy (`data/results/serdespy_*.csv`, 2026-11-06)
 - [x] DSP sizing: P, taps, instances; ADR written (ADR 0002, 2026-11-06; real numbers after synthesis)
-- [ ] Media: pulse-response plots per channel; model BER waterfall
+- [ ] Media: pulse-response plots per channel; model BER waterfall (done, user confirmed 2026-11-07); serdespy overlay; model errors-per-codeword histogram
 
 ### Phase B — TX + channel + noise
+- [ ] Model first: bit-exact payload PRBS and noise uniform source (`lfsr258`-type, ADR 0003), independent generators
 - [ ] RS encoder, Gray map, precoder, multiplierless channel FIR, noise generator, ADC; bit-exact vs. model
 - [ ] **Noise-tail validation on hardware** to ±7σ; plot and statistic committed
 - [ ] Media: noise histogram (log scale) vs. Gaussian
@@ -138,6 +139,7 @@ Every phase's DoD includes **README updated, `docs/log.md` entry, that phase's m
 - [ ] Media: tap trajectories and BER vs. adaptation time
 
 ### Phase F — MLSE + portfolio
+- [ ] Model first: 4-state MLSE (float and bit-exact)
 - [ ] 4-state MLSE; DFE vs. MLSE burst and CER comparison, with and without precoding
 - [ ] Live dashboard; timing closed; README complete per §13.4; demo video
 - [ ] Media: burst-length histograms DFE vs. MLSE; hero GIF; video

@@ -160,3 +160,18 @@ would also have failed on it.
   local clone (63 passed), then on GitHub: run 42408134930, all steps success.
 - README: shared-blocks table linking tb-common, fpga-eth-core, riscv-rv32i-tmr-core with tags
   (user request; PROTOCOL §3). Filed request 0003 to P2 for tb-common's "Used by" list.
+
+## 2026-11-07 (cont.): end-to-end KP4 model + statistics (Phase A DoD)
+
+- User decision: Phase A closes with the KP4 link + statistics modelled; MLSE model → Phase F,
+  bit-exact PRBS/lfsr258 → Phase B (buildplan amended).
+- `model/kp4link.py` + `model/fec_stats.py`; `link.run_link` split (bit-identical outputs on 5
+  configs). CER = P(> 15 errors): exact for bounded-distance decoding, so the slow Python decoder
+  (~170 ms/codeword) only spot-checks it (≥ 80 per row, 0 contradictions).
+- `make model-kp4` → `kp4_model.csv` (at `4fa99da`): null case holds (ideal DFE: variance/binomial
+  0.98–1.03, CER = prediction). Real DFE, Ch4 21 dB: CER 9.72% vs 4.63% predicted (2.1×, 972
+  errors); 2-way interleave 1.22×. Precoder: BER and bursts down (mean 3.4 → 1.08), CER up
+  (9.7% → 12.9%): RS-symbol error rate rises. Counter-intuitive; check on hardware at low BER.
+- Plot `docs/media/2026-11-07_phase-a_kp4-errors-per-codeword.png` (`make plots`), inspected.
+- Tests: 8 new; 9 injected bugs caught. A decode check at "< t" survived until a direct
+  t = 15/16 boundary test was added.

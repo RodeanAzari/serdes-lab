@@ -41,10 +41,10 @@ exactly these taps, scaled to integers.*
 | **DSP budget** | ~168 / 240 DSP48E1 (planning estimate; [TBD] after synthesis) |
 | **Emulation speed** | [TBD] (planning: 0.5 G symbols/s per instance at 125 MHz) |
 | **Lowest BER / CER measured** | [TBD] (hardware). Model: 4.15 × 10⁻⁶ on the 19.3 dB channel at 21 dB SNR, 216 errors ([`model_ber_float.csv`](data/results/model_ber_float.csv)) |
-| **Measured vs. predicted CER** | [TBD] (Phase D) |
+| **Measured vs. predicted CER** | Hardware [TBD] (Phase D). Model, high BER: **2.1×** the independent-error prediction on the 31.4 dB channel at 21 dB (972 codeword errors in 10⁴), 1.22× with 2-way interleaving ([`kp4_model.csv`](data/results/kp4_model.csv)) |
 | **Adaptation** | [TBD] (Phase E) |
 | **Fmax / LUT / BRAM** | [TBD] |
-| **Tests** | 63 model tests (pytest, `mypy --strict`, ruff); RTL tests [TBD] |
+| **Tests** | 71 model tests (pytest, `mypy --strict`, ruff); RTL tests [TBD] |
 | **Bugs found** | 3, plus 2 analysis findings that changed the design (below) |
 
 ## Status
@@ -107,13 +107,14 @@ pip packages for Python), never copied.
 | Channel conversion | Computed IL vs. the published table, every `make channels` run | TE contribution |
 | Equalizer | MMSE taps are optimal (perturbation test); BER on an ideal channel matches closed form | Closed form |
 | Link BER | Statistical agreement and paired bit-identical error counts | serdespy 1.0 |
+| KP4 link + statistics | Noise-free chain error-free and RS-aligned; independent errors match binomial CER; decoder agrees with the bounded-distance rule at t = 15/16 | Binomial theory, `model/rs.py` |
 | KP4 RS | Encode, decode 0…15 errors, failure detection beyond t | `galois` 0.4.11 |
 | Fixed point | Rounding, saturation, slicer ties; integer RX vs. float on identical samples | Float model |
 | Precoder | Eqs. 135-1/135-3, worked example, DFE burst → 2 errors, noise-free round trip | IEEE 802.3-2022 135.5.7.2; Broadcom 802.3bj example |
 | Noise generator | Exact tail probability to 8σ, symmetry, variance; addressing vs. an independent integer model | Exact Gaussian |
 
 Tests are checked against **injected bugs**: 7 in the RS decoder, 7 in the fixed-point RX, 12
-in the noise generator, 6 in the precoder. Each is caught by at least one test before it is reverted.
+in the noise generator, 6 in the precoder, 9 in the KP4 link and statistics. Each is caught by at least one test before it is reverted.
 
 **Bugs.**
 1. *MMSE solver missed the far ISI tail.* A perturbation test found taps with lower MSE than
@@ -181,7 +182,19 @@ Phase D measures against KP4.
 
 [![Model vs serdespy](docs/media/2026-11-07_phase-a_serdespy-overlay.png)](docs/media/2026-11-07_phase-a_serdespy-overlay.png)
 
-KP4 decoding, the statistics block and adaptation firmware: [TBD] (Phases D and E).
+The end-to-end KP4 model already shows the effect at high pre-FEC BER (10⁻³ range). On the
+31.4 dB channel at 21 dB SNR, codewords with more than 15 RS-symbol errors occur 2.1× as often
+as independent errors at the same symbol error rate would give: **9.72% (95% CI 9.15–10.32%) vs
+4.63%**. 2-way interleaving brings it to 1.22×. With ideal DFE decisions, the measured CER
+matches the prediction, which validates the comparison. The 1/(1+D) precoder cuts BER and burst length
+there, but **raises** CER (9.7% → 12.9%): short bursts often sit inside one or two RS symbols,
+and precoding turns them into entry and exit errors that can land in two. Details and limits:
+[`kp4_model.md`](data/results/kp4_model.md).
+
+[![Errors per codeword, model](docs/media/2026-11-07_phase-a_kp4-errors-per-codeword.png)](docs/media/2026-11-07_phase-a_kp4-errors-per-codeword.png)
+
+At realistic BER the CER is ~10⁻⁷ or lower, out of the model's reach; measuring it is the job
+of the FPGA (Phase D). Adaptation firmware: [TBD] (Phase E).
 
 ## On the board, demos, in Vivado
 
@@ -198,6 +211,7 @@ KP4 decoding, the statistics block and adaptation firmware: [TBD] (Phases D and 
 | Fixed-point penalty, 31.4 dB channel | 0.17 dB at 2.4 × 10⁻⁴, 0.60 dB at 10⁻¹² | [`fixed_point_sweep.csv`](data/results/fixed_point_sweep.csv) |
 | Fixed/float BER ratio (real DFE), 31.4 dB channel | 1.22 → 1.81 over +0…2 dB | [`fixed_point_ber.csv`](data/results/fixed_point_ber.csv) |
 | Noise tail error to 8σ | 4.5 × 10⁻⁵ relative (exact) | [`noise_sweep.csv`](data/results/noise_sweep.csv) |
+| KP4 CER vs. independent prediction (model, 31.4 dB, 21 dB SNR) | 2.1× non-interleaved, 1.22× 2-way; precoder 9.7% → 12.9% | [`kp4_model.csv`](data/results/kp4_model.csv) |
 | Hardware BER, CER, speed, utilization | [TBD] | |
 
 ## Limitations
@@ -233,7 +247,8 @@ Requires Python 3.11+ (developed on 3.14.4). Every target works from a clean che
 ```
 make setup        # venv + pinned requirements + submodules
 make channels     # download channel archives (hash-checked) → data/channels/*.npz
-make model-test   # 63 tests + mypy --strict + ruff
+make model-test   # 71 tests + mypy --strict + ruff
+make model-kp4    # KP4 statistics, float model (~30 min)
 make model-ber    # float BER waterfall (~3 min)
 make xcheck       # serdespy cross-check
 make plots        # regenerate every plot in docs/media/ from data/results/
@@ -245,7 +260,7 @@ RTL, synthesis and hardware targets (`sim`, `synth`, `prog`, `ber`) are [TBD].
 ## Repository layout
 
 ```
-model/      Python golden model (channel, equalizer, fixed point, noise, KP4 RS) + tests
+model/      Python golden model (channel, equalizer, fixed point, noise, precoder, KP4 link + statistics) + tests
 scripts/    channel conversion, sweeps, cross-checks → data/results/
 analysis/   plots (run by `make plots` only)
 data/       channels/ (converted pulses), results/ (CSV + sidecar .md), MANIFEST.md

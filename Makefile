@@ -34,6 +34,7 @@ plots:
 	$(PY) analysis/plot_pulses.py
 	$(PY) analysis/plot_ber.py
 	$(PY) analysis/plot_xcheck.py
+	$(PY) analysis/plot_kp4.py
 
 sim sim-full formal fw synth impl prog ber reports:
 	@echo "make $@: not implemented yet (see docs/buildplan.md §11)"; exit 1
