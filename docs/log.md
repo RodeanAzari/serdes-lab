@@ -175,3 +175,4 @@ would also have failed on it.
 - Plot `docs/media/2026-11-07_phase-a_kp4-errors-per-codeword.png` (`make plots`), inspected.
 - Tests: 8 new; 9 injected bugs caught. A decode check at "< t" survived until a direct
   t = 15/16 boundary test was added.
+- User confirmed the KP4 errors-per-codeword plot. **Phase A done**; tagged `v0.1-model`.

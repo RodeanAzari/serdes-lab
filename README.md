@@ -17,7 +17,7 @@ vs. MLSE, with and without precoding. It compares them with the prediction for i
 channel is a pulse-response FIR, the noise a Gaussian generator, the ADC a quantizer. That is
 the design: it makes every run reproducible and every error countable.
 
-**Status: Phase A (Python golden model and sizing) is in progress; no RTL yet.** Every number
+**Status: Phase A (Python golden model and sizing) is done (tag `v0.1-model`); no RTL yet.** Every number
 below comes from a CSV in [`data/results/`](data/results/) with a sidecar `.md` (command,
 commit, tool versions, seeds, interpretation). `[TBD]` means not measured yet.
 
@@ -51,7 +51,7 @@ exactly these taps, scaled to integers.*
 
 | Phase | Scope | State |
 |---|---|---|
-| A | Python golden model, channel conversion, sizing | **In progress**: model complete; media sign-off remains |
+| A | Python golden model, channel conversion, sizing | **Done** (2026-11-07, tag `v0.1-model`) |
 | B | TX, channel FIR, noise generator, ADC in RTL | Not started |
 | C | RX FFE, DFE, slicer with fixed taps; first hardware BER | Not started |
 | D | KP4 decode on the FPGA + error statistics | Not started; needs `fpga-rs-core` `rs-core-v1.0` ([shared blocks](#shared-blocks)) |
@@ -270,10 +270,10 @@ rtl/ tb/ fw/ syn/   [TBD]
 
 ## Roadmap
 
-1. Close Phase A (media sign-off).
-2. Phase B: TX, channel FIR, noise generator and ADC in RTL, bit-exact against the model;
-   overnight noise histogram on the board.
-3. Phase C: FFE/DFE with fixed taps; first hardware BER curve over the model.
-4. Phase D: KP4 decode with `fpga-rs-core`; errors per codeword and measured vs. predicted CER.
-5. Phase E: sign-sign LMS adaptation on the RV32I core.
-6. Phase F: MLSE vs. DFE burst comparison, live dashboard, demo video.
+1. Phase B: bit-exact payload PRBS and noise uniform source in the model, then TX, channel
+   FIR, noise generator and ADC in RTL, bit-exact against the model; overnight noise histogram
+   on the board.
+2. Phase C: FFE/DFE with fixed taps; first hardware BER curve over the model.
+3. Phase D: KP4 decode with `fpga-rs-core`; errors per codeword and measured vs. predicted CER.
+4. Phase E: sign-sign LMS adaptation on the RV32I core.
+5. Phase F: MLSE vs. DFE burst comparison, live dashboard, demo video.
