@@ -154,3 +154,9 @@ would also have failed on it.
 - Injection exposed a gap: ignoring the RX initial state passed with one seed (1/4 chance). Fixed: 8 seeds.
 - GitHub: created private `RodeanAzari/serdes-lab`, pushed main (history checked: no blob > 500 kB,
   no credentials; IEEE PDF and raw archives gitignored). No CI workflow exists yet.
+- User: keep CLAUDE.md and progress.md local → untracked + gitignored (they remain in commits before
+  this change; the repo is private). Makefile stub message now points to docs/buildplan.md.
+- CI: `.github/workflows/ci.yml` (Python 3.14, `make setup` + `make ci`). Verified first from a fresh
+  local clone (63 passed), then on GitHub: run 42408134930, all steps success.
+- README: shared-blocks table linking tb-common, fpga-eth-core, riscv-rv32i-tmr-core with tags
+  (user request; PROTOCOL §3). Filed request 0003 to P2 for tb-common's "Used by" list.
