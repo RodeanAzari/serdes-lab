@@ -11,10 +11,13 @@ Done:
 - serdespy cross-check (`make xcheck`): SDD21 + BER agree; paired runs bit-identical
 - DSP sizing (ADR 0002): P = 4, FFE 16 taps, 2 instances, 125 MHz planning (~168/240 DSP est.)
 - Noise generator (ADR 0003): segmented inverse-CDF, 64-bit uniform, exact tail check; HW histogram 4e13
+- Fixed-point RX (ADR 0004, `docs/fixed-point.md`, `model/fixed.py`): 7-bit ADC FS 3.0×rms, coef 10 b, z 10 b; Ch4 0.60 dB at 1e-12
 
 Resolved: sampling phase stays max-cursor (phase sweep, ADR 0001).
 Open: precoder definition must be verified against the 802.3 clause.
 
 Trap: run tests with `NUMBA_NUM_THREADS=1` (Makefile does): threaded numba under shared load took 13 min.
 
-Next (Phase A): fixed-point formats + ADC (incl. noise segment tables, 1% tail target to 8σ); precoder once verified.
+Rule: hardware BER is compared to the bit-exact fixed-point model, never to float curves (ADR 0004).
+
+Next (Phase A): noise segment tables + noise-sample format (1% tail target to 8σ, ADR 0003); precoder once verified; Phase A media (serdespy overlay plot).

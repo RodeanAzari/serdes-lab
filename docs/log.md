@@ -95,3 +95,17 @@ would also have failed on it.
   beyond 7σ). 4×10¹³ samples (~11 h at 10⁹/s) gives ~100.
 - User chose **segmented inverse-CDF** (exact tail check from the tables, no sampling needed)
   and the **overnight 4×10¹³** hardware histogram. All 8 lanes must feed it (one lane: ~89 h).
+
+## 2026-11-06 (cont.): fixed-point formats (ADR 0004)
+
+- `model/fixed.py`: bit-exact integer RX (ADC, FFE, DFE, slicer, register derivation);
+  `scripts/fixed_point_sweep.py` → `fixed_point_sweep.csv`, `fixed_point_ber.csv` (at `72fd78d`).
+- Metric: paired slicer-SNR penalty vs float on the same quantized channel and samples, at the
+  2.4e-4 **and** 1e-12 points. Quantization noise is fixed, so the low-BER point sizes the datapath.
+- User chose **7-bit ADC, FS = 3.0 × rms** (no ISI clipping: peaks 2.06 / 2.89 × rms). Ch4 0.17 dB
+  at 2.4e-4, 0.60 dB at 1e-12; 6 bits ≥ 1.46 dB. Coef 10 b, z 10 b, pre-ADC frac 6: ≤ 0.04 dB each.
+- Real-DFE paired BER: Ch4 fixed/float 1.22× → 1.81× from the operating point to +2 dB.
+- Found: frac < 3 makes double round-half-up add a DC bias (frac = 1 worst). At 1e-12 Ch4 σ is
+  0.77 ADC LSB, so 1e-12 penalties are MSE estimates until hardware (Phase C).
+- Tests: 7 injected bugs (truncation, asymmetric clip, DFE tap index, FFE off-by-one, slicer ties,
+  output shift, dropped DFE feedback) each caught; `make ci` green (43 tests).
