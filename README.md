@@ -43,14 +43,14 @@ exactly these taps, scaled to integers.*
 | **Measured vs. predicted CER** | [TBD] (Phase D) |
 | **Adaptation** | [TBD] (Phase E) |
 | **Fmax / LUT / BRAM** | [TBD] |
-| **Tests** | 58 model tests (pytest, `mypy --strict`, ruff); RTL tests [TBD] |
+| **Tests** | 63 model tests (pytest, `mypy --strict`, ruff); RTL tests [TBD] |
 | **Bugs found** | 3, plus 2 analysis findings that changed the design (below) |
 
 ## Status
 
 | Phase | Scope | State |
 |---|---|---|
-| A | Python golden model, channel conversion, sizing | **In progress**: precoder and sign-off on the media remain |
+| A | Python golden model, channel conversion, sizing | **In progress**: model complete; media sign-off remains |
 | B | TX, channel FIR, noise generator, ADC in RTL | Not started |
 | C | RX FFE, DFE, slicer with fixed taps; first hardware BER | Not started |
 | D | KP4 decode on the FPGA + error statistics | Not started; needs `fpga-rs-core` `rs-core-v1.0` |
@@ -96,10 +96,11 @@ the RTL ([`docs/fixed-point.md`](docs/fixed-point.md)), so RTL and model can be 
 | Link BER | Statistical agreement and paired bit-identical error counts | serdespy 1.0 |
 | KP4 RS | Encode, decode 0…15 errors, failure detection beyond t | `galois` 0.4.11 |
 | Fixed point | Rounding, saturation, slicer ties; integer RX vs. float on identical samples | Float model |
+| Precoder | Eqs. 135-1/135-3, worked example, DFE burst → 2 errors, noise-free round trip | IEEE 802.3-2022 135.5.7.2; Broadcom 802.3bj example |
 | Noise generator | Exact tail probability to 8σ, symmetry, variance; addressing vs. an independent integer model | Exact Gaussian |
 
 Tests are checked against **injected bugs**: 7 in the RS decoder, 7 in the fixed-point RX, 12
-in the noise generator. Each is caught by at least one test before it is reverted.
+in the noise generator, 6 in the precoder. Each is caught by at least one test before it is reverted.
 
 **Bugs.**
 1. *MMSE solver missed the far ISI tail.* A perturbation test found taps with lower MSE than
@@ -219,7 +220,7 @@ Requires Python 3.11+ (developed on 3.14.4). Every target works from a clean che
 ```
 make setup        # venv + pinned requirements + submodules
 make channels     # download channel archives (hash-checked) → data/channels/*.npz
-make model-test   # 58 tests + mypy --strict + ruff
+make model-test   # 63 tests + mypy --strict + ruff
 make model-ber    # float BER waterfall (~3 min)
 make xcheck       # serdespy cross-check
 make plots        # regenerate every plot in docs/media/ from data/results/
@@ -241,7 +242,7 @@ rtl/ tb/ fw/ syn/   [TBD]
 
 ## Roadmap
 
-1. Precoder (pending the 802.3 clause text), then close Phase A.
+1. Close Phase A (media sign-off).
 2. Phase B: TX, channel FIR, noise generator and ADC in RTL, bit-exact against the model;
    overnight noise histogram on the board.
 3. Phase C: FFE/DFE with fixed taps; first hardware BER curve over the model.

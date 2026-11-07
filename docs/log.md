@@ -139,3 +139,18 @@ would also have failed on it.
   by marker shape and the legend.
 - Open for Phase A DoD: precoder, README (none exists yet), user confirmation of media.
 - README.md drafted (Phase A scope, §13.4 order; every number linked to its CSV, unmeasured = [TBD]); awaits user review.
+
+## 2026-11-07 (cont.): precoder (ADR 0006), GitHub repo
+
+- User supplied IEEE Std 802.3-2022 (`data/raw/`, gitignored). Read 120.5.7.1–2 (pp. 4886–7) and
+  135.5.7.1–2 (p. 5283): P(j) = (G(j) – P(j-1)) mod 4 (135–1), G(j) = (P(j) + P(j-1)) mod 4 (135–3),
+  on Gray symbols. Levels 0..3 lowest→highest (136.8.2), initial state 0 for training patterns
+  only (136.8.11.1.3). Matches the earlier non-normative evidence.
+- `model/pam4.py`: `bits_to_gray`, `gray_to_bits`, `precode` (cumulative-sum form),
+  `precode_inverse`; `run_link(precoder=True)`. 5 tests; 6 injected bugs caught.
+- **Test bug.** Symptom: precoded ideal-channel BER test failed (2× theory just above the CI).
+  Root cause: the test applied a binomial CI to errors that come in adjacent pairs (√2 too narrow).
+  Fix: CI on pair count vs the Gray BER. Precoder itself correct: 14,092 bit errors from 7,055 slicer errors.
+- Injection exposed a gap: ignoring the RX initial state passed with one seed (1/4 chance). Fixed: 8 seeds.
+- GitHub: created private `RodeanAzari/serdes-lab`, pushed main (history checked: no blob > 500 kB,
+  no credentials; IEEE PDF and raw archives gitignored). No CI workflow exists yet.

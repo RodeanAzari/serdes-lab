@@ -189,7 +189,7 @@ Parallelism `P` and tap counts (from the DSP budget) · noise generator method �
 ## 6–9, 11–13. Build spec → [`docs/buildplan.md`](docs/buildplan.md)
 
 Same section numbers there. Rules from it that every session needs:
-- **Gray mapping:** 00 → −3, 01 → −1, 11 → +1, 10 → +3. **Precoder 1/(1+D) mod 4:** verify the exact definition in the 802.3 clause before implementing; TX and RX in lockstep (§6.1).
+- **Gray mapping:** 00 → −3, 01 → −1, 11 → +1, 10 → +3. **Precoder 1/(1+D) mod 4:** verified against 802.3-2022 135.5.7.2 (ADR 0006); one enable drives TX and RX (lockstep).
 - **KP4:** RS(544,514) over GF(2¹⁰), t = 15. One RS symbol = 5 PAM4 symbols: track alignment explicitly. Report non-interleaved and 2-way interleaved (§6.2).
 - **Channels:** raw `.s4p` never committed; name/URL/SHA-256 in `data/MANIFEST.md` (§6.3).
 - **Noise:** no sum-of-uniforms (CLT) generator. Validate tails to ±7σ on hardware before trusting any BER (§6.4).
