@@ -5,7 +5,8 @@ KP4 RS(544,514) FEC), written in SystemVerilog for a Digilent Arty A7-100T. It r
 through **real 802.3dj backplane channel data**, an equalizer and the FEC decoder, bit for bit.
 It does this fast enough to measure post-FEC error statistics, such as codeword error rates
 near 10⁻¹² and burst-length distributions, that software simulation can't reach. The
-equalizer's adaptation loop runs as firmware on a RISC-V core.
+equalizer's adaptation loop runs as firmware on a RISC-V core
+([riscv-rv32i-tmr-core](https://github.com/RodeanAzari/riscv-rv32i-tmr-core)).
 
 **The question it answers:** DFE error propagation turns single errors into bursts, and bursts
 interact with Reed–Solomon decoding in ways statistical tools only approximate. The emulator
@@ -53,8 +54,8 @@ exactly these taps, scaled to integers.*
 | A | Python golden model, channel conversion, sizing | **In progress**: model complete; media sign-off remains |
 | B | TX, channel FIR, noise generator, ADC in RTL | Not started |
 | C | RX FFE, DFE, slicer with fixed taps; first hardware BER | Not started |
-| D | KP4 decode on the FPGA + error statistics | Not started; needs `fpga-rs-core` `rs-core-v1.0` |
-| E | Sign-sign LMS adaptation firmware on the RV32I core | Not started |
+| D | KP4 decode on the FPGA + error statistics | Not started; needs `fpga-rs-core` `rs-core-v1.0` ([shared blocks](#shared-blocks)) |
+| E | Sign-sign LMS adaptation firmware on the [RV32I core](https://github.com/RodeanAzari/riscv-rv32i-tmr-core) | Not started |
 | F | MLSE, live dashboard, portfolio | Not started |
 
 Full spec and each phase's definition of done: [docs/buildplan.md](docs/buildplan.md).
@@ -84,6 +85,18 @@ flowchart LR
 
 Every block is first written in Python ([`model/`](model/)) in the same fixed-point formats as
 the RTL ([`docs/fixed-point.md`](docs/fixed-point.md)), so RTL and model can be compared bit for bit.
+
+### Shared blocks
+
+Blocks from sibling projects are consumed only at release tags (git submodules for RTL, pinned
+pip packages for Python), never copied.
+
+| Block | Repo | Tag | Used for | State |
+|---|---|---|---|---|
+| tb-common | [RodeanAzari/tb-common](https://github.com/RodeanAzari/tb-common) | `tb-common-v0.1` | cocotb testbench utilities | Pinned in `requirements.txt`; testbenches start in Phase B |
+| fpga-eth-core | [RodeanAzari/fpga-eth-core](https://github.com/RodeanAzari/fpga-eth-core) | `eth-core-v0.2` | UDP stats and sample streaming to the host | Planned (`rtl/eth/` submodule) |
+| RV32I SoC | [RodeanAzari/riscv-rv32i-tmr-core](https://github.com/RodeanAzari/riscv-rv32i-tmr-core) | `soc-v1.0` | Core + register bus for the adaptation firmware | Planned, Phase E (`rtl/soc/`) |
+| fpga-rs-core | [TBD: repository not public yet] | `rs-core-v1.0` | KP4 RS(544,514) decoder | Planned, Phase D (`rtl/rs/`); not released yet |
 
 ## Verification
 
