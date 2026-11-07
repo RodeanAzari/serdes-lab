@@ -22,5 +22,5 @@ Trap: run tests with `NUMBA_NUM_THREADS=1` (Makefile does): threaded numba under
 Rule: hardware BER is compared to the bit-exact fixed-point model, never to float curves (ADR 0004).
 Rule: the HW noise histogram is chi-squared vs the exact model pmf; vs the Gaussian only for |n| ≥ 4σ (ADR 0005).
 
-Next (Phase A): precoder once the user supplies the 802.3 PDF (evidence so far: docs/log.md 2026-11-07); README (none yet); then Phase A DoD (user confirms media).
+Next (Phase A): precoder once the user supplies the 802.3 PDF (evidence so far: docs/log.md 2026-11-07); README draft awaits user review; then Phase A DoD (user confirms media).
 Phase B noise RTL still needs: lfsr258 uniform source in the model (bit-exact), table export for BRAM init.

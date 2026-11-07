@@ -138,3 +138,4 @@ would also have failed on it.
   from `serdespy_ber.csv`. The palette validator could not run (no node); identity is also carried
   by marker shape and the legend.
 - Open for Phase A DoD: precoder, README (none exists yet), user confirmation of media.
+- README.md drafted (Phase A scope, §13.4 order; every number linked to its CSV, unmeasured = [TBD]); awaits user review.
