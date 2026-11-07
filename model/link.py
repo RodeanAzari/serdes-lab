@@ -14,7 +14,7 @@ import numpy as np
 import numpy.typing as npt
 
 from model.equalizer import PAM4_ES
-from model.pam4 import LEVELS, bits_to_symbols, slice_idx, symbols_to_bits
+from model.pam4 import LEVELS, bits_to_gray, gray_to_bits, precode, precode_inverse, slice_idx
 
 FArr = npt.NDArray[np.float64]
 IArr = npt.NDArray[np.int64]
@@ -50,16 +50,21 @@ class LinkRun:
 def run_link(
     pulse: FArr, cursor: int, ffe: FArr, n_pre: int, dfe_b: float, h0: float,
     snr_db: float, n_sym: int, seed_data: int, seed_noise: int, ideal_dfe: bool = False,
+    precoder: bool = False,
 ) -> LinkRun:  # fmt: skip
     """Simulate n_sym symbols. `ffe`/`dfe_b`/`h0` come from mmse_ffe_dfe (n_dfe <= 1).
 
     ideal_dfe=True feeds the DFE the true previous symbol (no error propagation): the gap
     between the two modes is the DFE error-propagation penalty.
+    precoder=True applies 1/(1+D) mod 4 at TX and its inverse after the slicer (ADR 0006); the
+    DFE always works on transmitted levels. Precoder state starts at 0 (Eq. 135-1, P(-1) = 0).
     """
     rng_d = np.random.default_rng(seed_data)
     rng_n = np.random.default_rng(np.random.SeedSequence(seed_noise, spawn_key=(1,)))
     tx_bits = rng_d.integers(0, 2, size=2 * n_sym, dtype=np.uint8)
-    a = bits_to_symbols(tx_bits).astype(np.float64)
+    g = bits_to_gray(tx_bits)
+    sym = precode(g) if precoder else g
+    a = LEVELS[sym].astype(np.float64)
     # y[k] = sum_j pulse[j] a[k + cursor - j]
     y = np.convolve(a, pulse)[cursor : cursor + n_sym]
     y = y + rng_n.normal(0.0, noise_sigma(pulse, snr_db), size=n_sym)
@@ -72,7 +77,9 @@ def run_link(
         d = slice_idx(z[sl] - dfe_b * a[guard - 1 : n_sym - guard - 1], h0)
     else:
         d = dfe1_decide(z[sl], dfe_b, h0, int(true_idx[guard - 1]))
-    rx_bits = symbols_to_bits(LEVELS[d])
+    # RX inverse starts from the true symbol before the window, as the DFE does.
+    g_rx = precode_inverse(d, int(true_idx[guard - 1])) if precoder else d
+    rx_bits = gray_to_bits(g_rx)
     tb = tx_bits[2 * guard : 2 * (n_sym - guard)]
     return LinkRun(
         bits=len(tb), bit_errors=int(np.count_nonzero(rx_bits != tb)),
