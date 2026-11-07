@@ -125,3 +125,16 @@ would also have failed on it.
 - Verified: pre-ADC 16 b headroom holds to SNR −7.41 dB (Ch4) with 9.155σ noise.
 - Tests: 12 injected bugs each caught (one more injection exposed a dead line, removed; one exposed an
   upper-bound-only chi-square test, fixed with a known-perturbation test). `make ci` green.
+
+## 2026-11-07 (cont.): precoder sources, serdespy overlay plot
+
+- Precoder: normative 802.3 text not available publicly (IEEE GET needs the user's account; user
+  will fetch it). Evidence found: 1/(1+D) ⇒ P(j) = (G(j) − P(j−1)) mod 4, RX (P(j) + P(j−1)) mod 4;
+  the Broadcom worked example (parthasarathy_01_0911, a proposal) matches the minus sign at every
+  step and breaks for plus at symbol 7; 802.3cd D1.1 comment responses cite "Equation (135-1)",
+  Gray-coded {A,B} input, state initialized to 0 per training pattern. Not implemented until the
+  clause is read (CLAUDE.md rule).
+- `analysis/plot_xcheck.py` (in `make plots`) → `docs/media/2026-11-07_phase-a_serdespy-overlay.png`
+  from `serdespy_ber.csv`. The palette validator could not run (no node); identity is also carried
+  by marker shape and the legend.
+- Open for Phase A DoD: precoder, README (none exists yet), user confirmation of media.
