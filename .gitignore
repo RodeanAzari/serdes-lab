@@ -15,3 +15,7 @@ data/raw/
 syn/build/
 sim_build/
 results.xml
+
+# Local session notes for Claude Code: kept on disk, not published
+CLAUDE.md
+progress.md

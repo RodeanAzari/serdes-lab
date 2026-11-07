@@ -33,7 +33,7 @@ plots:
 	$(PY) analysis/plot_xcheck.py
 
 sim sim-full formal fw synth impl prog ber reports:
-	@echo "make $@: not implemented yet (see progress.md)"; exit 1
+	@echo "make $@: not implemented yet (see docs/buildplan.md §11)"; exit 1
 
 ci: lint model-test
 
