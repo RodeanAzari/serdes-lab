@@ -109,3 +109,19 @@ would also have failed on it.
   0.77 ADC LSB, so 1e-12 penalties are MSE estimates until hardware (Phase C).
 - Tests: 7 injected bugs (truncation, asymmetric clip, DFE tap index, FFE off-by-one, slicer ties,
   output shift, dropped DFE feedback) each caught; `make ci` green (43 tests).
+
+## 2026-11-07: noise generator formats (ADR 0005)
+
+- `model/noise.py`: bit-exact segmented inverse-CDF generator; `pmf_g` enumerates all 2⁶³ inputs
+  by group, so every accuracy number is exact. `scripts/noise_tables.py` → `noise_sweep.csv`
+  (S 2…5, XB 12/17, FG 18/20).
+- User chose **S = 4, XB = 17, FG = 20**: 1024 segments, 8 BRAM36 total, 3 DSP/sample. Tail error
+  4.5e-5 to 8σ (target 1%), max |g error| 2.4e-6σ, reach 9.155σ.
+- Found: the tail error floor (~5e-5) is the 63-bit input itself (~10⁴ inputs beyond 8σ), the same for every table size.
+- Found: a 4e13-sample histogram chi-square vs the ideal Gaussian would fail with bug-free RTL
+  (λ ≈ 4e4 on 354 dof at σ = 49.4) for every config within the DSP budget. User chose: hardware
+  histogram vs the exact model pmf, plus a Gaussian chi-square on |n| ≥ 4σ only (λ = 3.9 / 157 dof).
+  Buildplan §6.4 and ADR 0003 step 3 updated.
+- Verified: pre-ADC 16 b headroom holds to SNR −7.41 dB (Ch4) with 9.155σ noise.
+- Tests: 12 injected bugs each caught (one more injection exposed a dead line, removed; one exposed an
+  upper-bound-only chi-square test, fixed with a known-perturbation test). `make ci` green.

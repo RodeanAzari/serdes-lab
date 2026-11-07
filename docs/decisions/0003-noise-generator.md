@@ -1,6 +1,7 @@
 # ADR 0003: Gaussian noise generator
 
 **Status:** accepted 2026-11-06 (user decision). **Phase:** A (design), B (implementation).
+Formats and validation step 3: superseded by [ADR 0005](0005-noise-formats-and-validation.md).
 
 ## Requirements (buildplan §6.4, ADR 0002)
 
@@ -33,7 +34,8 @@ Python model against the 1% tail target, and recorded in `docs/fixed-point.md`.
    CDF follows exactly from the tables: count the inputs mapping below each threshold, per
    segment. `make model-test` checks the 1% tail target to 8σ with **no sampling**.
 2. **Bit-exact RTL** vs. the model in cocotb (random seeds, every segment and the sign bit hit).
-3. **Hardware histogram, ~4×10¹³ samples (~11 h overnight)**, compared to the Gaussian to ±7σ
+3. *(Superseded by ADR 0005: compared to the exact model pmf, Gaussian chi-square on |n| ≥ 4σ only.)*
+   **Hardware histogram, ~4×10¹³ samples (~11 h overnight)**, compared to the Gaussian to ±7σ
    by chi-square (bins merged to ≥ 5 expected counts); log-scale plot committed. Exceeds the
    §6.4 minimum of 10¹² (user decision): 10¹² samples hold only ~2.6 values beyond 7σ
    (80 beyond 6.5σ), so they verify only to ~6.5σ; 4×10¹³ gives ~100 beyond 7σ. All 8 lanes

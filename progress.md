@@ -12,6 +12,7 @@ Done:
 - DSP sizing (ADR 0002): P = 4, FFE 16 taps, 2 instances, 125 MHz planning (~168/240 DSP est.)
 - Noise generator (ADR 0003): segmented inverse-CDF, 64-bit uniform, exact tail check; HW histogram 4e13
 - Fixed-point RX (ADR 0004, `docs/fixed-point.md`, `model/fixed.py`): 7-bit ADC FS 3.0×rms, coef 10 b, z 10 b; Ch4 0.60 dB at 1e-12
+- Noise formats (ADR 0005, `model/noise.py`): S=4, XB=17, FG=20, 1024 segments; exact tail error 4.5e-5 to 8σ
 
 Resolved: sampling phase stays max-cursor (phase sweep, ADR 0001).
 Open: precoder definition must be verified against the 802.3 clause.
@@ -19,5 +20,7 @@ Open: precoder definition must be verified against the 802.3 clause.
 Trap: run tests with `NUMBA_NUM_THREADS=1` (Makefile does): threaded numba under shared load took 13 min.
 
 Rule: hardware BER is compared to the bit-exact fixed-point model, never to float curves (ADR 0004).
+Rule: the HW noise histogram is chi-squared vs the exact model pmf; vs the Gaussian only for |n| ≥ 4σ (ADR 0005).
 
-Next (Phase A): noise segment tables + noise-sample format (1% tail target to 8σ, ADR 0003); precoder once verified; Phase A media (serdespy overlay plot).
+Next (Phase A): precoder once verified against the 802.3 clause; Phase A media (serdespy overlay plot), then Phase A DoD.
+Phase B noise RTL still needs: lfsr258 uniform source in the model (bit-exact), table export for BRAM init.

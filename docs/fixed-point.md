@@ -10,8 +10,15 @@ symmetric** to ±(2^(n-1) − 1); no silent wrap anywhere.
 |---|---|---|---|
 | PAM4 symbol a | 3 b signed | ±1, ±3 | Gray map per buildplan §6.1 |
 | Channel tap hq[j] | 11 b signed | units 2⁻⁶ ADC LSB | Gain per channel: ADC FS = 3.0 × signal rms. Rms normalization bounds \|hq\| ≤ 601 |
-| Pre-ADC word y = Σ hq·a + noise | 16 b signed | units 2⁻⁶ ADC LSB | No wrap for ≤ 16 channel taps and SNR ≥ −7 dB (noise to 9.08σ) |
-| Noise sample | [TBD] | units 2⁻⁶ ADC LSB | With the ADR 0003 segment tables (next step) |
+| Pre-ADC word y = Σ hq·a + noise | 16 b signed | units 2⁻⁶ ADC LSB | No wrap on Ch2/Ch4 for SNR ≥ −7.41 dB (worst data pattern + 9.155σ noise, ADR 0005) |
+| Uniform word | 64 b | bit 63 sign, bits 62:0 magnitude input u | One per sample per lane (ADR 0003) |
+| Noise segment index | 10 b | octave (leading zeros of u, 0…63) ‖ 4 sub bits | 1024 segments (ADR 0005) |
+| Noise poly input x | 17 b unsigned | next 17 bits after the sub index | Zero-padded in octaves with < 21 bits left |
+| Noise c0 / c1 / c2 | 25 / 23 / 17 b signed | c0 units 2⁻²⁰; c1, c2 units 2⁻²⁶ | 65 b BRAM word |
+| Noise Horner t | 23 b signed | units 2⁻²⁶ | t = c1 + rs(x·c2, 17) |
+| Noise magnitude g | 24 b unsigned | units 2⁻²⁰ σ, max 9.155 | g = max(0, c0 + rs(x·t, 23)) |
+| σ register | 17 b unsigned | units 2⁻⁵ pre-ADC unit | σ_reg = round(32 σ) |
+| Noise sample n | 16 b signed | units 2⁻⁶ ADC LSB | ±sat(rs(g·σ_reg, 25), 16); sign applied after rounding |
 | ADC output x | 7 b signed | ±63 LSB | `sat(round_shift(y, 6), 7)` |
 | FFE coefficient c[i] | 10 b signed | ±511, scale per channel | `quantize_coefs`: max \|tap\| → 511 |
 | FFE product | 17 b signed | | One DSP48E1 per tap |

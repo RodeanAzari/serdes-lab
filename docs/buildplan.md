@@ -36,7 +36,7 @@ Prior work: U of T FPGA platform for post-FEC BER analysis of 200G links (Barrie
 - **Noise-tail accuracy is the critical risk.** BER around 10⁻¹² sits ~7σ out.
   - Sum-of-uniforms (CLT) generators have no tails, so they produce **fake-good BER**.
   - Use Box–Muller (fixed-point log/sqrt + CORDIC) or an inverse-CDF approximation with tail segments.
-  - **Validate before trusting any BER:** a hardware histogram in BRAM over ≥ 10¹² samples, compared bin by bin to the Gaussian out to ±7σ. Commit the plot and the chi-square result.
+  - **Validate before trusting any BER:** a hardware histogram in BRAM over ≥ 10¹² samples, plotted bin by bin against the Gaussian out to ±7σ. Commit the plot and the chi-square results: against the model's exact pmf (all bins) and against the Gaussian (tail bins, ADR 0005; a full-range Gaussian chi-square at 4×10¹³ samples would reject any generator within the DSP budget).
 
 ---
 
