@@ -15,6 +15,9 @@ TESTS: dict[str, tuple[str, list[str], list[dict[str, int]]]] = {
     "test_prbs31_par": ("prbs31_par", ["rtl/tx/prbs31_par.sv"],
                         [{"W": 1}, {"W": 10}, {"W": 31}, {"W": 40}]),  # fmt: skip
     "test_lfsr258": ("lfsr258", ["rtl/channel/lfsr258.sv"], [{}]),
+    "test_channel_fir": ("channel_fir", ["rtl/channel/channel_fir.sv"],
+                         [{"P": 4, "L": 16}, {"P": 4, "L": 12}, {"P": 2, "L": 16},
+                          {"P": 2, "L": 5}, {"P": 4, "L": 3}, {"P": 4, "L": 1}]),  # fmt: skip
     "test_rs_enc": ("rs_enc", ["rtl/tx/rs_enc.sv"], [{}]),
     "test_gearbox": ("gearbox", ["rtl/tx/gearbox.sv"],
                      [{"IN_W": 10, "OUT_W": 8}, {"IN_W": 10, "OUT_W": 4}, {"IN_W": 10, "OUT_W": 10},
