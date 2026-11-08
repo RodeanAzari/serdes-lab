@@ -1,6 +1,6 @@
 # ADR 0007: Payload PRBS and noise uniform source (bit-exact definitions)
 
-**Status:** proposed 2026-11-08 (awaiting user review). **Phase:** B. Model: `model/prng.py`,
+**Status:** accepted 2026-11-08 (PRBS31: user accepted the recommendation). **Phase:** B. Model: `model/prng.py`,
 tests: `model/tests/test_prng.py`. Noise generator method: ADR 0003.
 
 ## Decision
