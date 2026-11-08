@@ -192,3 +192,18 @@ would also have failed on it.
 - Test bug: a precoder-reset test passed by chance when the boundary state was 0 (1 in 4);
   now requires a nonzero-state boundary.
 - `make ci`: 102 passed. Commits efb26d7, b3696d3, 7294be5.
+
+## 2026-11-08 (cont.): Phase B RTL: PRNGs and TX path
+
+- RTL, all bit-exact vs `model/` in cocotb (Verilator): `prbs31_par`, `lfsr258` (050ee3d);
+  `rs_enc`, `gearbox`, `pam4_map`, `tx_top` at P = 4 and 2, precoder on/off (77dfb62).
+- `make sim` added to `make ci`; lint runs each file as its own top. Hosted CI now installs
+  OSS CAD Suite 2026-10-24 (Verilator 5.053-devel; cocotb needs ≥ 5.036, apt has 5.020).
+  Runs 42513121720 and 42516056274: success, 14 cocotb runs on GitHub.
+- Injected bugs: PRNG RTL 9/9; rs_enc 9/9 (+1 equivalent: `M'(PRIM_POLY)` already truncates);
+  TX 11/11 after a fix to the gearbox test.
+- **Lesson (gearbox):** a buffer 1 bit too small passed every even width pair (bit counts stay
+  even, so the deadlock state is unreachable) and, at odd widths, *hung* the test instead of
+  failing it. Added 10→7 and 9→8, a no-underrun check at full input rate, and a cycle bound.
+- Test bug: SVA fired at t = 0 because the TB applied reset after the first edge (RTL fine).
+- Trap: `pkill -f <pattern>` matched the invoking shell and killed it mid-command.
