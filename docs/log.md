@@ -176,3 +176,19 @@ would also have failed on it.
 - Tests: 8 new; 9 injected bugs caught. A decode check at "< t" survived until a direct
   t = 15/16 boundary test was added.
 - User confirmed the KP4 errors-per-codeword plot. **Phase A done**; tagged `v0.1-model`.
+
+## 2026-11-08: Phase B model first (PRBS31, lfsr258, TX stream)
+
+- `model/prng.py` (ADR 0007, accepted: PRBS31 payload, user took the recommendation): PRBS31
+  x³¹+x²⁸+1; L'Ecuyer lfsr258 per noise lane, word k from lane k mod P; host-side lane seeds.
+- lfsr258 bit-exact vs the reference C (`scripts/lfsr258_ref.sh`, source SHA-256 pinned,
+  vectors in `model/tests/data/`). Also checked: Tausworthe sequence model, galois primitivity
+  and Berlekamp–Massey (linear complexity 258), lag/lane/payload correlation.
+- **Lesson:** a wrong constant in the shared lfsr258 table passed every test except the
+  reference vectors (the "independent" model read the same table). Reference vectors catch 3/3.
+- `model/tx.py`: the stream the Phase B RTL must match (PRBS → RS → Gray/precoder → integer
+  FIR → noise → sat 16 → ADC). Precoder state from reset only; outputs defined once the FIR
+  window is full (data registers not reset). 10/10 injected bugs caught.
+- Test bug: a precoder-reset test passed by chance when the boundary state was 0 (1 in 4);
+  now requires a nonzero-state boundary.
+- `make ci`: 102 passed. Commits efb26d7, b3696d3, 7294be5.
