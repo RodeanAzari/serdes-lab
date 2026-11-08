@@ -54,7 +54,7 @@ exactly these taps, scaled to integers.*
 | A | Python golden model, channel conversion, sizing | **Done** (2026-11-07, tag `v0.1-model`) |
 | B | TX, channel FIR, noise generator, ADC in RTL | Not started |
 | C | RX FFE, DFE, slicer with fixed taps; first hardware BER | Not started |
-| D | KP4 decode on the FPGA + error statistics | Not started; needs `fpga-rs-core` `rs-core-v1.0` ([shared blocks](#shared-blocks)) |
+| D | KP4 decode on the FPGA + error statistics | Not started; uses `fpga-rs-core` `rs-core-v1.0` (released; [shared blocks](#shared-blocks)) |
 | E | Sign-sign LMS adaptation firmware on the [RV32I core](https://github.com/RodeanAzari/riscv-rv32i-tmr-core) | Not started |
 | F | MLSE, live dashboard, portfolio | Not started |
 
@@ -96,7 +96,7 @@ pip packages for Python), never copied.
 | tb-common | [RodeanAzari/tb-common](https://github.com/RodeanAzari/tb-common) | `tb-common-v0.1` | cocotb testbench utilities | Pinned in `requirements.txt`; testbenches start in Phase B |
 | fpga-eth-core | [RodeanAzari/fpga-eth-core](https://github.com/RodeanAzari/fpga-eth-core) | `eth-core-v0.2` | UDP stats and sample streaming to the host | Planned (`rtl/eth/` submodule) |
 | RV32I SoC | [RodeanAzari/riscv-rv32i-tmr-core](https://github.com/RodeanAzari/riscv-rv32i-tmr-core) | `soc-v1.0` | Core + register bus for the adaptation firmware | Planned, Phase E (`rtl/soc/`) |
-| fpga-rs-core | [TBD: repository not public yet] | `rs-core-v1.0` | KP4 RS(544,514) decoder | Planned, Phase D (`rtl/rs/`); not released yet |
+| fpga-rs-core | [RodeanAzari/fpga-rs-core](https://github.com/RodeanAzari/fpga-rs-core) | `rs-core-v1.0` | KP4 RS(544,514) decoder | Planned, Phase D (`rtl/rs/`) |
 
 ## Verification
 
