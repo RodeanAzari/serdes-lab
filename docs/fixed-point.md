@@ -11,7 +11,7 @@ symmetric** to ±(2^(n-1) − 1); no silent wrap anywhere.
 | PAM4 symbol a | 3 b signed | ±1, ±3 | Gray map per buildplan §6.1 |
 | Gray / precoded symbol G, P | 2 b unsigned | 0…3 | P(j) = (G(j) − P(j−1)) mod 4: the specified mod-4 wrap (ADR 0006), not an overflow |
 | Channel tap hq[j] | 11 b signed | units 2⁻⁶ ADC LSB | Gain per channel: ADC FS = 3.0 × signal rms. Rms normalization bounds \|hq\| ≤ 601 |
-| Pre-ADC word y = Σ hq·a + noise | 16 b signed | units 2⁻⁶ ADC LSB | No wrap on Ch2/Ch4 for SNR ≥ −7.41 dB (worst data pattern + 9.155σ noise, ADR 0005) |
+| Pre-ADC word y = Σ hq·a + noise | 16 b signed | units 2⁻⁶ ADC LSB | y = sat(s + n, 16) (`model/tx.py`); saturation never engages on Ch2/Ch4 for SNR ≥ −7.41 dB (worst data pattern + 9.155σ noise, ADR 0005) |
 | Uniform word | 64 b | bit 63 sign, bits 62:0 magnitude input u | One per sample per lane (ADR 0003) |
 | Noise segment index | 10 b | octave (leading zeros of u, 0…63) ‖ 4 sub bits | 1024 segments (ADR 0005) |
 | Noise poly input x | 17 b unsigned | next 17 bits after the sub index | Zero-padded in octaves with < 21 bits left |
