@@ -207,3 +207,17 @@ would also have failed on it.
   failing it. Added 10→7 and 9→8, a no-underrun check at full input rate, and a cycle bound.
 - Test bug: SVA fired at t = 0 because the TB applied reset after the first edge (RTL fine).
 - Trap: `pkill -f <pattern>` matched the invoking shell and killed it mid-command.
+
+## 2026-11-08 (cont.): Phase B RTL: channel FIR
+
+- `rtl/channel/channel_fir.sv` (58fce61): causal s[m] = Σ hq[j]·a[m−j], P symbols/clock, L = 16
+  taps default (Ch2 needs 10, Ch4 12). Each term is a 4:1 mux of {−3h, −h, h, 3h}, 3h = (h<<1)+h;
+  full-precision 17 b sums; latency 3 (products | groups of 4 | group tree). No cursor in RTL:
+  hardware output m = model s[m − cursor]; alignment is the channel top's job.
+- Bit-exact vs np.convolve (the model's channel) at 6 (P, L) sets incl. L < P and L = 1; real
+  Ch2/Ch4 taps run where L ≥ 12. 10/10 injected bugs caught (incl. lane order, missing sign
+  extension, valid-ignoring history, a dropped tap).
+- Yosys `synth_xilinx` estimate (P=4, L=16): ~1.8k LUT, 1.5k FF, 0 DSP. **Vivado is not
+  installed on this machine**: no timing yet. The explicit 2-levels-per-stage trees are the
+  conservative guess; check in Vivado before tagging.
+- `make ci` green (lint 7 modules, 20 cocotb runs, 102 pytest).
