@@ -2,7 +2,7 @@
 PY      := .venv/bin/python
 SV_SRCS := $(shell find rtl -name '*.sv' -not -path 'rtl/soc/*' -not -path 'rtl/eth/*' -not -path 'rtl/rs/*' 2>/dev/null)
 
-.PHONY: setup channels model-kp4 model-ber xcheck model-test lint sim sim-full formal fw synth impl prog ber plots reports ci clean
+.PHONY: setup channels model-kp4 model-ber xcheck model-test lint sim synth-ooc sim-full formal fw synth impl prog ber plots reports ci clean
 
 setup:
 	python3 -m venv .venv
@@ -40,6 +40,10 @@ plots:
 
 sim:  # cocotb + Verilator, bit-exact vs model/ (tb/cocotb/run.py lists modules and parameters)
 	$(PY) tb/cocotb/run.py
+
+synth-ooc:  # make synth-ooc TOP=channel_fir [PERIOD=8] [GEN="P=4 L=16"]; reports in syn/build/$(TOP)/
+	mkdir -p syn/build && cd syn/build && ../../scripts/vivado.sh -mode batch -nojournal -nolog \
+	  -source ../synth_ooc.tcl -tclargs $(TOP) $(or $(PERIOD),8) $(GEN)
 
 sim-full formal fw synth impl prog ber reports:
 	@echo "make $@: not implemented yet (see docs/buildplan.md §11)"; exit 1

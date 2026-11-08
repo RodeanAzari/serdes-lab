@@ -221,3 +221,10 @@ would also have failed on it.
   installed on this machine**: no timing yet. The explicit 2-levels-per-stage trees are the
   conservative guess; check in Vivado before tagging.
 - `make ci` green (lint 7 modules, 20 cocotb runs, 102 pytest).
+- **Correction:** Vivado *is* installed (2025.2 at `~/Xilinx/2025.2`, loaded by the opt-in
+  `vivado-env`; I had only searched /opt and /mnt/c). The FIR commit message (58fce61) wrongly says
+  "not installed". New: `scripts/vivado.sh` (Vivado env confined to one process, mirrors
+  `vivado-env`), `syn/synth_ooc.tcl`, `make synth-ooc TOP=… [PERIOD=8] [GEN="P=4 L=16"]`.
+- channel_fir P=4 L=16, OOC post-route at 8 ns on xc7a100tcsg324-1: **WNS +2.851 ns, WHS
+  +0.132 ns**; 1,984 LUT, 1,557 FF, 0 DSP, 0 BRAM, 0 latches, 0 critical warnings (only the
+  OOC partition-pin warnings). Pipeline kept as is.
