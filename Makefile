@@ -25,10 +25,12 @@ xcheck:  # serdespy cross-check (buildplan §8); needs data/raw from `make chann
 model-test:
 	NUMBA_NUM_THREADS=1 $(PY) -m pytest -q  # threaded numba spin-waits under shared CPU load: 13 min vs 13 s
 	.venv/bin/mypy model --exclude model/tests
-	.venv/bin/ruff check model scripts analysis
+	.venv/bin/ruff check model scripts analysis tb
 
 lint:
-	@if [ -z "$(SV_SRCS)" ]; then echo "lint: no RTL yet"; else verilator --lint-only -Wall $(SV_SRCS); fi
+	@if [ -z "$(SV_SRCS)" ]; then echo "lint: no RTL yet"; else \
+	  for f in $(SV_SRCS); do t=$$(basename $$f .sv); \
+	    verilator --lint-only -Wall --top-module $$t $(SV_SRCS) || exit 1; echo "lint ok: $$t"; done; fi  # one top per file
 
 plots:
 	$(PY) analysis/plot_pulses.py
@@ -36,10 +38,13 @@ plots:
 	$(PY) analysis/plot_xcheck.py
 	$(PY) analysis/plot_kp4.py
 
-sim sim-full formal fw synth impl prog ber reports:
+sim:  # cocotb + Verilator, bit-exact vs model/ (tb/cocotb/run.py lists modules and parameters)
+	$(PY) tb/cocotb/run.py
+
+sim-full formal fw synth impl prog ber reports:
 	@echo "make $@: not implemented yet (see docs/buildplan.md §11)"; exit 1
 
-ci: lint model-test
+ci: lint sim model-test
 
 clean:
 	rm -rf .pytest_cache .mypy_cache .ruff_cache sim_build

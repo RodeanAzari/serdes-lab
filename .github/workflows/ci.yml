@@ -1,6 +1,6 @@
 # CI on every push (CLAUDE.md §3): what `make ci` runs locally.
-# Today: lint (no RTL yet) + model-test (pytest, mypy --strict, ruff).
-# Add verilator / SymbiYosys / riscv toolchain installs here when `sim`, `formal`, `fw` exist.
+# Today: lint + sim (Verilator, cocotb) + model-test (pytest, mypy --strict, ruff).
+# Add the riscv toolchain install here when `fw` exists.
 name: ci
 
 on:
@@ -20,5 +20,11 @@ jobs:
           cache-dependency-path: requirements.txt
       - name: Setup (venv + pinned requirements)
         run: make setup
+      # Verilator (cocotb 2.x needs >= 5.036; apt has 5.020), yosys, sby. After `make setup`, so
+      # the venv is built from setup-python's interpreter, not the suite's bundled python3.
+      - uses: YosysHQ/setup-oss-cad-suite@v4
+        with:
+          version: "2026-10-24"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: make ci
         run: make ci
