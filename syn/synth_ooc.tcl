@@ -23,6 +23,8 @@ proc sv_files {dir} {
     return $fs
 }
 read_verilog -sv [sv_files [file join $root rtl]]
+# ROM init files ($readmemh by file name, e.g. rtl/channel/noise_tables.mem)
+foreach m [glob -nocomplain -directory [file join $root rtl] */*.mem] { read_mem $m }
 
 set gargs {}
 foreach g $gens { lappend gargs -generic $g }

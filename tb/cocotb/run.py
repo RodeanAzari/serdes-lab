@@ -23,9 +23,16 @@ TESTS: dict[str, tuple[str, list[str], list[dict[str, int]]]] = {
                      [{"IN_W": 10, "OUT_W": 8}, {"IN_W": 10, "OUT_W": 4}, {"IN_W": 10, "OUT_W": 10},
                       {"IN_W": 4, "OUT_W": 10},
                       {"IN_W": 10, "OUT_W": 7}, {"IN_W": 9, "OUT_W": 8}]),  # fmt: skip
+    "test_noise_gen": ("noise_gen", ["rtl/channel/noise_rom.sv", "rtl/channel/noise_lane.sv",
+                                     "rtl/channel/noise_gen.sv"], [{"P": 4}, {"P": 3}, {"P": 1}]),
     "test_tx_top": ("tx_top", ["rtl/tx/prbs31_par.sv", "rtl/tx/rs_enc.sv", "rtl/tx/gearbox.sv",
                                "rtl/tx/pam4_map.sv", "rtl/tx/tx_top.sv"],
                     [{"P": 4}, {"P": 2}]),  # fmt: skip
+}
+
+# extra Verilator build arguments per test module (string parameters stay out of the run tag)
+BUILD_ARGS: dict[str, list[str]] = {
+    "test_noise_gen": [f'-GINIT_FILE="{ROOT}/rtl/channel/noise_tables.mem"'],
 }
 
 
@@ -41,7 +48,8 @@ def main(names: list[str]) -> int:
                 sources=[ROOT / s for s in srcs],
                 hdl_toplevel=top,
                 parameters=params,
-                build_args=["--assert", "-Wall", "-Wno-fatal", "--timing"],
+                build_args=["--assert", "-Wall", "-Wno-fatal", "--timing",
+                            *BUILD_ARGS.get(name, [])],  # fmt: skip
                 build_dir=build_dir,
                 always=True,
             )

@@ -4,6 +4,7 @@ Accuracy checks are exact: pmf_g enumerates every one of the 2^63 magnitude inpu
 """
 
 import math
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -179,3 +180,20 @@ def test_chi2_noncentrality_known_perturbation() -> None:
     counts = np.round(q * 2.0**63).astype(np.uint64)
     lam, _ = nz.chi2_noncentrality(counts, sig, n)
     assert lam == pytest.approx(n * d**2 * (1 / p[1] + 1 / p[2]), rel=1e-3)
+
+
+def test_committed_bram_tables_match_model(tb: nz.Tables) -> None:
+    # rtl/channel/noise_tables.mem (scripts/export_noise_tables.py) initialises the RTL ROM;
+    # decoded here independently of the exporter: {c2[16:0], c1[22:0], c0[24:0]} per line.
+    path = Path(__file__).resolve().parents[2] / "rtl/channel/noise_tables.mem"
+    words = [int(s, 16) for s in path.read_text().split()]
+    assert len(words) == len(tb.c0) == 1024
+
+    def fld(w: int, lo: int, bits: int) -> int:
+        v = (w >> lo) & ((1 << bits) - 1)
+        return v - (1 << bits) if v >> (bits - 1) else v
+
+    assert all(w >> 65 == 0 for w in words)
+    assert [fld(w, 0, 25) for w in words] == tb.c0.tolist()
+    assert [fld(w, 25, 23) for w in words] == tb.c1.tolist()
+    assert [fld(w, 48, 17) for w in words] == tb.c2.tolist()
