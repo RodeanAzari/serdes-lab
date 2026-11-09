@@ -228,3 +228,25 @@ would also have failed on it.
 - channel_fir P=4 L=16, OOC post-route at 8 ns on xc7a100tcsg324-1: **WNS +2.851 ns, WHS
   +0.132 ns**; 1,984 LUT, 1,557 FF, 0 DSP, 0 BRAM, 0 latches, 0 critical warnings (only the
   OOC partition-pin warnings). Pipeline kept as is.
+
+## 2026-11-09: Phase B RTL: Gaussian noise generator
+
+- `noise_lane` / `noise_rom` / `noise_gen` (9519432): ADR 0005 formats exactly. Normalize in 3
+  stages (2 shift steps each), ROM latency 2, 3 DSP48E1 per lane, latency 13. Each rounding
+  (`rs`) and coefficient add is one DSP post-add: c1 + rs(x·c2, 17) = (x·c2 + {c1, 1, 0¹⁶}) >>> 17
+  exactly, so the C port carries both.
+- Tables: `rtl/channel/noise_tables.mem` (`scripts/export_noise_tables.py`, committed); a pytest
+  decodes it independently and requires equality with `build_tables()`.
+- cocotb, P = 4, 3, 1: bit-exact vs `noise.noise()` on every reachable segment on every lane
+  (random, zero and all-one x), u = 0, σ_reg ∈ {1581, 0, 1, 2¹⁶, 2¹⁷−1}; ≥ 200 directed
+  rounding ties per lane at σ = 2¹⁶ (random words give only ~1/512 ties), saturation at max σ,
+  valid gaps, mid-stream reset.
+- Bug injection 13/14. The miss (`max(0)` clamp removed) is an equivalent mutant: the pre-clamp
+  minimum over all 2⁶³ inputs is exactly 0. Clamp kept to mirror the model.
+- **Test bug:** my first SVA claimed g < 2²³ (it checked bit 46 = g's bit 23 = 8σ); g reaches
+  9.155σ legitimately. Removed; the t-truncation assertion (40 → 23 b) stays.
+- Vivado OOC, P = 4 @ 8 ns post-route: **WNS +3.668 ns, WHS +0.058 ns**; 600 LUT, 837 FF,
+  **12 DSP, 4 BRAM36** (= ADR 0002/0005 budget), 0 latches, 0 critical warnings. All three
+  multiplies in DSP with MREG/PREG and the C-port add.
+- Trap: background bug-injection scripts edit RTL in place; don't edit those files meanwhile.
+- `make ci` green (lint 10 modules, 23 cocotb runs, 103 pytest).
