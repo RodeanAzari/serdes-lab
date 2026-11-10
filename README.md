@@ -93,8 +93,8 @@ pip packages for Python), never copied.
 
 | Block | Repo | Tag | Used for | State |
 |---|---|---|---|---|
-| tb-common | [RodeanAzari/tb-common](https://github.com/RodeanAzari/tb-common) | `tb-common-v0.1` | cocotb testbench utilities | Pinned in `requirements.txt`; testbenches start in Phase B |
-| fpga-eth-core | [RodeanAzari/fpga-eth-core](https://github.com/RodeanAzari/fpga-eth-core) | `eth-core-v0.2` | UDP stats and sample streaming to the host | Planned (`rtl/eth/` submodule) |
+| tb-common | [RodeanAzari/tb-common](https://github.com/RodeanAzari/tb-common) | `tb-common-v0.1` | cocotb testbench utilities | Pinned in `requirements.txt`; used by every cocotb testbench |
+| fpga-eth-core | [RodeanAzari/fpga-eth-core](https://github.com/RodeanAzari/fpga-eth-core) | `eth-core-v0.2` | UDP stats and sample streaming to the host | Submodule `rtl/eth/`; hardware noise histogram readout (ADR 0009) |
 | RV32I SoC | [RodeanAzari/riscv-rv32i-tmr-core](https://github.com/RodeanAzari/riscv-rv32i-tmr-core) | `soc-v1.0` | Core + register bus for the adaptation firmware | Planned, Phase E (`rtl/soc/`) |
 | fpga-rs-core | [RodeanAzari/fpga-rs-core](https://github.com/RodeanAzari/fpga-rs-core) | `rs-core-v1.0` | KP4 RS(544,514) decoder | Planned, Phase D (`rtl/rs/`) |
 

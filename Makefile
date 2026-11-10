@@ -1,6 +1,9 @@
 # Open SerDes Lab. All targets must work from a clean checkout.
 PY      := .venv/bin/python
 SV_SRCS := $(shell find rtl -name '*.sv' -not -path 'rtl/soc/*' -not -path 'rtl/eth/*' -not -path 'rtl/rs/*' 2>/dev/null)
+# fpga-eth-core at its tag: RTL, the example clk_gen/reset_sync, and its Xilinx-primitive
+# stand-ins (tb/models/, lint only). Read from the submodule, never copied.
+ETH_SRCS := $(wildcard rtl/eth/rtl/*.sv rtl/eth/examples/rx_stats/reset_sync.sv rtl/eth/examples/rx_stats/xilinx/clk_gen.sv rtl/eth/tb/models/*.sv)
 
 .PHONY: setup channels model-kp4 model-ber xcheck model-test lint sim synth-ooc sim-full formal fw synth impl prog ber plots reports ci clean
 
@@ -30,7 +33,7 @@ model-test:
 lint:
 	@if [ -z "$(SV_SRCS)" ]; then echo "lint: no RTL yet"; else \
 	  for f in $(SV_SRCS); do t=$$(basename $$f .sv); \
-	    verilator --lint-only -Wall --top-module $$t $(SV_SRCS) || exit 1; echo "lint ok: $$t"; done; fi  # one top per file
+	    verilator --lint-only -Wall --top-module $$t $(SV_SRCS) $(ETH_SRCS) || exit 1; echo "lint ok: $$t"; done; fi  # one top per file
 
 plots:
 	$(PY) analysis/plot_pulses.py
@@ -45,7 +48,12 @@ synth-ooc:  # make synth-ooc TOP=channel_fir [PERIOD=8] [GEN="P=4 L=16"]; report
 	mkdir -p syn/build && cd syn/build && ../../scripts/vivado.sh -mode batch -nojournal -nolog \
 	  -source ../synth_ooc.tcl -tclargs $(TOP) $(or $(PERIOD),8) $(GEN)
 
-sim-full formal fw synth impl prog ber reports:
+impl:  # make impl [TOP=noise_hist_top]: board build + bitstream in syn/build/$(TOP)/; refuses on negative slack
+	@git diff --quiet HEAD -- rtl constr syn || echo "WARNING: uncommitted changes: BUILD_ID does not identify the source"
+	mkdir -p syn/build && cd syn/build && ../../scripts/vivado.sh -mode batch -nojournal -nolog \
+	  -source ../build_board.tcl -tclargs $(or $(TOP),noise_hist_top) $$(git rev-parse --short=8 HEAD)
+
+sim-full formal fw synth prog ber reports:
 	@echo "make $@: not implemented yet (see docs/buildplan.md §11)"; exit 1
 
 ci: lint sim model-test

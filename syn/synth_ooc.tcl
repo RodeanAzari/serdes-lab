@@ -19,10 +19,18 @@ file mkdir $out
 
 proc sv_files {dir} {
     set fs [glob -nocomplain -directory $dir *.sv]
-    foreach d [glob -nocomplain -type d -directory $dir *] { lappend fs {*}[sv_files $d] }
+    foreach d [glob -nocomplain -type d -directory $dir *] {
+        if {[file tail $d] in {eth rs soc}} continue  ;# submodules: only their rtl/, below
+        lappend fs {*}[sv_files $d]
+    }
     return $fs
 }
 read_verilog -sv [sv_files [file join $root rtl]]
+# Shared blocks (git submodules at release tags): their rtl/ only, never tb/ formal/ examples/
+foreach sub {eth rs soc} {
+    set fs [glob -nocomplain -directory [file join $root rtl $sub rtl] *.sv]
+    if {[llength $fs]} { read_verilog -sv $fs }
+}
 # ROM init files ($readmemh by file name, e.g. rtl/channel/noise_tables.mem)
 foreach m [glob -nocomplain -directory [file join $root rtl] */*.mem] { read_mem $m }
 
