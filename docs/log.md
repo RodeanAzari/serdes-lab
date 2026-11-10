@@ -300,3 +300,13 @@ would also have failed on it.
   11682 FF, 35 BRAM tiles, 24 DSP; 0 critical warnings, 0 latches. Methodology SYNTH-16 (16
   address collisions) = hist_bram's same-address read/write, overridden by the distance-2
   forward; CDC-6 = eth-core Gray pointers (constrained). Reports: syn/build/noise_hist_top/.
+- **Board, first exactness check (3a1f17ee): FAIL**, 4 of 8192 bins
+  ([csv](../data/results/noise_hist_exact_3a1f17ee_fail.csv)). Each lane could lose only its
+  run's last sample, in about half the runs. Repeated READs of one finished histogram flipped
+  that bin between old and new, so the memory was right and the readback was not. Netlist:
+  Vivado mapped `if (clr) mem[..] <= 0; else if (v3) mem[a3] <= new` to port A with
+  WEA = ENA = 1 and an idle write-back of port A's read data. After a run a1..a3 hold the last
+  bin (noise_gen holds its output), so port A rewrote it every clock, colliding with readout
+  reads. Verilator's ideal RAM cannot show this. Fix 82d89d0: a single explicit write enable
+  (now on ENARDEN), plus a build_board.tcl check that fails if a hist RAM's enable is tied
+  high. Side effect: 1 RAMB36 + 1 RAMB18 per lane (was 2 + 2).

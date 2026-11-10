@@ -36,6 +36,7 @@ exactly these taps, scaled to integers.*
 | **Equalizer (planned)** | 16-tap FFE + 1-tap DFE, 4-state MLSE in Phase F; P = 4 symbols per clock, 2 instances ([ADR 0002](docs/decisions/0002-parallelism-and-taps.md)) |
 | **Fixed point** | 7-bit ADC at 3.0 × signal rms, 10-bit coefficients and output: **0.60 dB** penalty on the 31.4 dB channel at BER 10⁻¹² (MSE estimate), 0.17 dB at 2.4 × 10⁻⁴ ([`fixed_point_sweep.csv`](data/results/fixed_point_sweep.csv)) |
 | **Noise generator** | Segmented inverse CDF, reach 9.155σ; tail probability within **4.5 × 10⁻⁵** (relative) of a Gaussian out to 8σ, computed exactly over all 2⁶³ inputs ([`noise_sweep.csv`](data/results/noise_sweep.csv)) |
+| **Noise on hardware** | 8 lanes at 125 MHz: histograms equal the bit-exact model **bin for bin** (0 of 8192 bins differ, 2²² words per lane, 2 seeds) ([`noise_hist_exact.csv`](data/results/noise_hist_exact.csv), [`noise_hist_exact_seed7340033.csv`](data/results/noise_hist_exact_seed7340033.csv)). Tails to ±7σ from the long run: [TBD] |
 | **Model cross-check** | BER agrees with serdespy at 8 of 8 points (\|z\| ≤ 1.63); identical error counts in 80 of 80 paired chunks ([`serdespy_ber.csv`](data/results/serdespy_ber.csv), [`serdespy_paired.csv`](data/results/serdespy_paired.csv)) |
 | **KP4 model** | Encoder and decoder agree with the independent `galois` library for 0…15 errors and beyond t ([`model/tests/test_rs.py`](model/tests/test_rs.py)) |
 | **DSP budget** | ~168 / 240 DSP48E1 (planning estimate; [TBD] after synthesis) |

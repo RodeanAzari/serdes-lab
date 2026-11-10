@@ -116,7 +116,8 @@ def write_csv(path: Path, cols: dict[str, np.ndarray]) -> None:
                 wr.writerow([lane, b - NB // 2, *(int(v[lane, b]) for v in cols.values())])
 
 
-def sidecar(path: Path, cmd: str, st: dict[str, int | bytes], meta: dict[str, object]) -> None:
+def sidecar(path: Path, cmd: str, st: dict[str, int | bytes], meta: dict[str, object],
+            interp: str) -> None:
     commit = subprocess.run(["git", "rev-parse", "--short=8", "HEAD"], capture_output=True,
                             text=True, cwd=ROOT).stdout.strip()  # fmt: skip
     lines = [f"# {path.name}", "", f"- Written: {dt.datetime.now().isoformat(timespec='seconds')}",
@@ -125,7 +126,7 @@ def sidecar(path: Path, cmd: str, st: dict[str, int | bytes], meta: dict[str, ob
              f"- Words per lane: {st['words']} (run length {st['runlen']})",
              *(f"- {k}: {v}" for k, v in meta.items()),
              "- Columns: lane, n (bin = clamp(n, -512, 511)), counts", "",
-             "Interpretation: see analysis/noise_hist.py output and docs/log.md."]  # fmt: skip
+             f"Interpretation: {interp}"]  # fmt: skip
     path.with_suffix(".md").write_text("\n".join(lines) + "\n")
 
 
@@ -150,7 +151,10 @@ def exact(bd: Board, seed: int) -> int:
     write_csv(out, {"hw": hw, "model": want})
     diff = int(np.count_nonzero(hw != want))
     sidecar(out, " ".join(sys.argv), st, {"seed (lane_seeds)": seed, "bins differing": diff,
-                                          "verdict": "PASS" if diff == 0 else "FAIL"})  # fmt: skip
+                                          "verdict": "PASS" if diff == 0 else "FAIL"},
+            "ADR 0009 exactness check: the board's histograms vs np.bincount of the bit-exact "
+            "model noise for the same seeds and word count; PASS means every bin is equal, so "
+            "the long run's histogram is the model's distribution sampled by the hardware.")
     assert int(hw.sum()) == LANES * n_words == int(want.sum())
     print(f"{'PASS' if diff == 0 else 'FAIL'}: {diff} of {LANES * NB} bins differ -> {out}")
     return 0 if diff == 0 else 1
@@ -175,7 +179,9 @@ def run(bd: Board, seed: int, n_words: int, period: float, attach: bool) -> int:
         write_csv(out, {"count": hist})
         elapsed_h = (time.time() - state["started"]) / 3600
         sidecar(out, " ".join(sys.argv), st,
-                {"seed (lane_seeds)": state["seed"], "elapsed_h": f"{elapsed_h:.2f}"})
+                {"seed (lane_seeds)": state["seed"], "elapsed_h": f"{elapsed_h:.2f}"},
+                "checkpoint of the long hardware run (ADR 0009); bins sum to 8 x words. "
+                "Statistics vs the exact model pmf: model.noise.chi2_gof / symmetry_test.")
         print(f"{dt.datetime.now():%H:%M:%S} checkpoint: {st['words']} words/lane "
               f"({100 * int(st['words']) / int(state['words_target']):.1f}%)", flush=True)
         if st["reached"]:
