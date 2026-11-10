@@ -5,8 +5,11 @@
              codewords back to back from reset, 1 RS symbol = 5 PAM4 symbols, MSB first
     PAM4     Gray map, optional 1/(1+D) mod 4 precoder with P(-1) = 0 at reset (ADR 0006)
     channel  s[k] = sum_j hq[j] * a[k + cursor - j]                 (integer taps, LUT FIR)
-    noise    n[k] from uniform word k = lane k mod P, step k div P   (ADR 0003/0005/0007)
-    pre-ADC  y[k] = sat(s[k] + n[k], 16)                             (docs/fixed-point.md)
+    noise    n[j] from uniform word j = lane j mod P, step j div P   (ADR 0003/0005/0007)
+    pre-ADC  y[k] = sat(s[k] + n[k + cursor], 16)                    (docs/fixed-point.md)
+
+Noise word j pairs with hardware symbol j: the RTL FIR is causal, so its output m is s[m - cursor]
+and its noise lanes step with that output (ADR 0008).
     ADC      x[k] = sat(round_shift(y[k], frac), adc_bits)
 
 Data registers are not reset (CLAUDE.md §5), so y[k] is defined only where the FIR window holds
@@ -58,7 +61,7 @@ def pre_adc(
         raise ValueError("cursor must index hq")
     n = len(a)
     s = np.convolve(a, hq)[cursor : cursor + n]
-    nz = noise.noise(prng.noise_words(n, seeds), tb, sigma_reg)
+    nz = noise.noise(prng.noise_words(n + cursor, seeds)[cursor:], tb, sigma_reg)  # ADR 0008
     return sat(s + nz, PRE_ADC_BITS)
 
 

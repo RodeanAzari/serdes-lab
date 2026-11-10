@@ -78,20 +78,20 @@ def test_pre_adc_matches_naive_sum(tb: noise.Tables, ch4: tuple[np.ndarray, int]
     seeds = prng.lane_seeds(42, P)
     sigma_reg = round(49.4 * 32)
     y = tx.pre_adc(a, hq, cur, seeds, tb, sigma_reg)
-    words = np.array(ref_words(len(a), seeds), dtype=np.uint64)
-    nz = noise.noise(words, tb, sigma_reg)
+    words = np.array(ref_words(len(a) + cur, seeds), dtype=np.uint64)
+    nz = noise.noise(words, tb, sigma_reg)  # word j <-> hardware symbol j = k + cursor
     v = tx.valid(len(a), len(hq), cur)
     assert v.start == len(hq) - 1 - cur and v.stop == len(a) - cur
     for k in range(v.start, v.stop):
         s = sum(int(hq[j]) * int(a[k + cur - j]) for j in range(len(hq)))
-        assert y[k] == max(-32767, min(32767, s + int(nz[k]))), k
+        assert y[k] == max(-32767, min(32767, s + int(nz[k + cur]))), k
 
 
-def test_noise_alone_uses_word_k(tb: noise.Tables) -> None:
-    """Zero channel: y is exactly the noise stream, word k <-> sample k (lane k mod P)."""
+def test_noise_alone_uses_word_k_plus_cursor(tb: noise.Tables) -> None:
+    """Zero channel: y is exactly the noise stream, word k + cursor <-> sample k (ADR 0008)."""
     seeds = prng.lane_seeds(9, P)
     y = tx.pre_adc(np.zeros(37, dtype=np.int64), np.zeros(3, dtype=np.int64), 1, seeds, tb, 4000)
-    want = noise.noise(np.array(ref_words(37, seeds), dtype=np.uint64), tb, 4000)
+    want = noise.noise(np.array(ref_words(38, seeds)[1:], dtype=np.uint64), tb, 4000)  # cursor 1
     assert (y == want).all()
     assert np.count_nonzero(y) > 30
 
