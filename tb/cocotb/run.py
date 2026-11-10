@@ -25,6 +25,13 @@ TESTS: dict[str, tuple[str, list[str], list[dict[str, int]]]] = {
                       {"IN_W": 10, "OUT_W": 7}, {"IN_W": 9, "OUT_W": 8}]),  # fmt: skip
     "test_noise_gen": ("noise_gen", ["rtl/channel/noise_rom.sv", "rtl/channel/noise_lane.sv",
                                      "rtl/channel/noise_gen.sv"], [{"P": 4}, {"P": 3}, {"P": 1}]),
+    "test_channel_top": ("channel_top", ["rtl/tx/prbs31_par.sv", "rtl/tx/rs_enc.sv",
+                                         "rtl/tx/gearbox.sv", "rtl/tx/pam4_map.sv",
+                                         "rtl/tx/tx_top.sv", "rtl/channel/channel_fir.sv",
+                                         "rtl/channel/lfsr258.sv", "rtl/channel/noise_rom.sv",
+                                         "rtl/channel/noise_lane.sv", "rtl/channel/noise_gen.sv",
+                                         "rtl/channel/channel_top.sv"],
+                         [{"P": 4}, {"P": 2}]),
     "test_tx_top": ("tx_top", ["rtl/tx/prbs31_par.sv", "rtl/tx/rs_enc.sv", "rtl/tx/gearbox.sv",
                                "rtl/tx/pam4_map.sv", "rtl/tx/tx_top.sv"],
                     [{"P": 4}, {"P": 2}]),  # fmt: skip
@@ -33,6 +40,7 @@ TESTS: dict[str, tuple[str, list[str], list[dict[str, int]]]] = {
 # extra Verilator build arguments per test module (string parameters stay out of the run tag)
 BUILD_ARGS: dict[str, list[str]] = {
     "test_noise_gen": [f'-GINIT_FILE="{ROOT}/rtl/channel/noise_tables.mem"'],
+    "test_channel_top": [f'-GINIT_FILE="{ROOT}/rtl/channel/noise_tables.mem"', "--public-flat-rw"],
 }
 
 
