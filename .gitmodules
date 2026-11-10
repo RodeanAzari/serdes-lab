@@ -1,0 +1,3 @@
+[submodule "rtl/eth"]
+	path = rtl/eth
+	url = https://github.com/RodeanAzari/fpga-eth-core.git
