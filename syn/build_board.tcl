@@ -43,6 +43,12 @@ read_xdc -ref async_fifo [file join $eth constr async_fifo.xdc]
 synth_design -top $top -part $part -generic BUILD_ID=32'h$build_id
 set bb [get_cells -hier -quiet -filter {IS_BLACKBOX == 1}]
 if {[llength $bb] > 0} { error "black boxes in the netlist: $bb" }
+# hist_bram's RAMs must write only on its write enable (port A ENARDEN driven, not tied high):
+# a constant enable maps to a write-back every idle clock, and readout reads of the last
+# written bin then collide on hardware (seen 2026-11-10; Verilator cannot show it).
+foreach r [get_cells -quiet -hier -filter {REF_NAME =~ RAMB* && NAME =~ *u_hist*}] {
+    if {[get_nets -of [get_pins $r/ENARDEN]] eq "<const1>"} { error "hist RAM $r: ENARDEN tied high" }
+}
 
 opt_design
 place_design

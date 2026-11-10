@@ -53,8 +53,19 @@ module hist_bram #(
   logic               sel1_q, sel2_q, sel2_d_q;
   logic [COUNT_W:0]   inc;
   logic [1:0]         rdv_q;
+  // One write port with an explicit enable. Written as `if (clr) mem[clr_a] <= 0; else if (v3)
+  // mem[a3] <= new`, Vivado 2025.2 mapped it to WEA = 1 with a write-back of port A's read data
+  // when idle: after a run, a1..a3 hold the last bin (noise_gen holds its output), so port A
+  // rewrote that bin every clock and readout reads of it collided (hardware: the last sample
+  // read back as old or new at random). With we_c on WEA, an idle RAM is never written.
+  logic               we_c;
+  logic [IDX_W-1:0]   wa_c;
+  logic [COUNT_W-1:0] wd_c;
 
   assign raddr = v1_q ? a1_q : rd_addr_i;
+  assign we_c  = clr_q || v3_q;
+  assign wa_c  = clr_q ? clr_a_q : a3_q;
+  assign wd_c  = clr_q ? '0 : new_cnt;
 
   always_comb begin
     if      (sel1_q) old = w1_d_q;  // previous sample, same bin, written last clock
@@ -78,8 +89,7 @@ module hist_bram #(
     a3_q   <= a2_q;
     rd_q   <= mem[raddr];
     dout_q <= rd_q;
-    if (clr_q)      mem[clr_a_q] <= '0;
-    else if (v3_q)  mem[a3_q]    <= new_cnt;
+    if (we_c) mem[wa_c] <= wd_c;
     w1_d_q <= new_cnt;
     w2_d_q <= w1_d_q;
     if (rst_i) begin
