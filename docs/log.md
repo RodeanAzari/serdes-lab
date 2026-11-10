@@ -310,3 +310,13 @@ would also have failed on it.
   reads. Verilator's ideal RAM cannot show this. Fix 82d89d0: a single explicit write enable
   (now on ENARDEN), plus a build_board.tcl check that fails if a hist RAM's enable is tied
   high. Side effect: 1 RAMB36 + 1 RAMB18 per lane (was 2 + 2).
+- Rebuild 82d89d09: **WNS +0.069 ns, WHS +0.015 ns**; 7696 LUT, 11643 FF, 23 BRAM tiles,
+  24 DSP; 0 critical warnings; SYNTH-16 gone. On the board: 4 back-to-back reads identical,
+  8 same-seed runs exact, and **`exact` PASS for 2 seeds: 0 of 8192 bins differ**
+  ([csv](../data/results/noise_hist_exact.csv),
+  [csv](../data/results/noise_hist_exact_seed7340033.csv)). Slack is thin (+0.069 ns); if a
+  later change breaks it, first look at the hist clr → CONFIG accept → σ register path.
+- Host network: the USB NIC had no carrier; a replug made Windows take it (mirrored as eth2,
+  link-local). Re-attached with usbipd and the static IP/neighbour restored by the user.
+- Long run started 13:29 (5 × 10¹² words/lane = 4 × 10¹³ samples, ~11.1 h, hourly
+  checkpoints to `data/results/noise_hist_hw.csv`). Board claimed by P4 until it ends.
