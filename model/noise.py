@@ -229,3 +229,62 @@ def chi2_noncentrality(
     pg_b = np.concatenate((body_g, pg[lo:keep], [pg[keep:].sum()]))
     pi_b = np.concatenate((body_i, pi[lo:keep], [2.0 * ndtr(-(keep - 0.5) / sigma)]))
     return float(n_samples * np.sum((pg_b - pi_b) ** 2 / pi_b)), len(pg_b) - 1
+
+
+# ---- hardware histogram statistics (ADR 0005 validation, ADR 0009) ----------------------------
+
+
+def fold_abs(hist: IArr) -> IArr:
+    """|n| counts from a signed histogram whose bin b holds n = b - len(hist) // 2."""
+    h = np.asarray(hist, dtype=np.int64)
+    c = len(h) // 2
+    out = h[c:].copy()
+    out[1 : c + 1] += h[c - 1 :: -1][: len(out) - 1]
+    return out
+
+
+def gauss_abs_pmf(sigma: float, n_max: int) -> FArr:
+    """P(|X| = m), m = 0..n_max, X = an exact N(0, sigma^2) rounded half up; the mass beyond
+    n_max is added to the last entry so the vector sums to 1."""
+    m = np.arange(n_max + 1)
+    upper = ndtr(-(m + 0.5) / sigma)
+    p = 2.0 * (ndtr(-np.maximum(m - 0.5, 0.0) / sigma) - upper)
+    p[0] = 1.0 - 2.0 * upper[0]
+    p[-1] += 2.0 * upper[-1]
+    return np.asarray(p, dtype=np.float64)
+
+
+def chi2_gof(obs: IArr, p: FArr, lo: int = 0) -> tuple[float, int, float]:
+    """Pearson chi-square of |n| counts against the pmf p (same indexing, sums to 1).
+    Bins below lo are merged into one (tail-only test, ADR 0005); upward, bins are kept
+    singly while the expected count is >= 5 and the rest is merged into one tail bin.
+    Returns (statistic, degrees of freedom, p-value)."""
+    from scipy.stats import chi2 as chi2_dist  # type: ignore[import-untyped]
+
+    o = np.zeros(max(len(obs), len(p)), dtype=np.float64)
+    o[: len(obs)] = obs
+    q = np.zeros(len(o), dtype=np.float64)
+    q[: len(p)] = p
+    e = q * o.sum()
+    keep = int(np.argmax(e < 5.0)) if np.any(e < 5.0) else len(e)
+    keep = min(max(keep, lo + 1), len(o) - 1)  # reduceat needs every edge < len(o)
+    edges = ([0] if lo > 0 else []) + list(range(lo, keep)) + [keep]
+    ob = np.add.reduceat(o, edges)
+    eb = np.add.reduceat(e, edges)
+    stat = float(np.sum((ob - eb) ** 2 / eb))
+    dof = len(ob) - 1
+    return stat, dof, float(chi2_dist.sf(stat, dof))
+
+
+def symmetry_test(hist: IArr) -> tuple[float, int, float]:
+    """Counts at +m vs -m (m >= 1, pairs with >= 10 samples): sum (a - b)^2 / (a + b), which is
+    chi-square with one dof per pair if the pmf is symmetric. Returns (stat, dof, p-value)."""
+    from scipy.stats import chi2 as chi2_dist
+
+    h = np.asarray(hist, dtype=np.float64)
+    c = len(h) // 2
+    a, b = h[c + 1 :], h[c - 1 :: -1][: len(h) - c - 1]
+    use = (a + b) >= 10
+    stat = float(np.sum((a[use] - b[use]) ** 2 / (a[use] + b[use])))
+    dof = int(np.count_nonzero(use))
+    return stat, dof, float(chi2_dist.sf(stat, dof))

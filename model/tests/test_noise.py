@@ -197,3 +197,55 @@ def test_committed_bram_tables_match_model(tb: nz.Tables) -> None:
     assert [fld(w, 0, 25) for w in words] == tb.c0.tolist()
     assert [fld(w, 25, 23) for w in words] == tb.c1.tolist()
     assert [fld(w, 48, 17) for w in words] == tb.c2.tolist()
+
+
+# ---- hardware histogram statistics (ADR 0009) ----------------------------------------------
+
+
+def test_fold_abs_and_symmetry_on_a_known_histogram() -> None:
+    h = np.zeros(8, dtype=np.int64)  # bins n = -4..3
+    h[[0, 1, 3, 4, 5, 7]] = [1, 2, 7, 10, 7, 30]  # n = -4, -3, -1, 0, +1, +3
+    assert nz.fold_abs(h).tolist() == [10, 14, 0, 32]  # |n| = 0..3; n = -4 has no +4 partner
+    stat, dof, _ = nz.symmetry_test(h)
+    assert dof == 2 and stat == pytest.approx(0.0 + 28**2 / 32)  # pairs m = 1 (7, 7), 3 (30, 2)
+
+
+def sample_hist(p_abs: np.ndarray, n: int, seed: int, p_neg: float = 0.5) -> np.ndarray:
+    """Signed histogram (bins -512..511) of n samples with |n| ~ p_abs, sign ~ Bernoulli."""
+    rng = np.random.default_rng(seed)
+    mag = rng.multinomial(n, p_abs)
+    neg = rng.binomial(mag, p_neg)
+    neg[0] = 0
+    h = np.zeros(1024, dtype=np.int64)
+    m = np.arange(len(mag))[:512]
+    h[512 + m] += (mag - neg)[:512]
+    h[512 - m[1:]] += neg[1:512]
+    return h
+
+
+@pytest.mark.parametrize("lo", [0, 4 * 49])
+def test_chi2_gof_accepts_its_own_distribution(lo: int) -> None:
+    p = nz.gauss_abs_pmf(49.40625, 511)
+    pvals = [nz.chi2_gof(nz.fold_abs(sample_hist(p, 10**10, s)), p, lo)[2] for s in range(5)]
+    assert min(pvals) > 1e-3  # five independent draws: a correct test rejects none
+    stat, dof, _ = nz.chi2_gof(nz.fold_abs(sample_hist(p, 10**10, 99)), p, lo)
+    assert abs(stat - dof) < 6 * math.sqrt(2 * dof)
+
+
+@pytest.mark.parametrize("lo", [0, 4 * 49])
+def test_chi2_gof_rejects_a_one_percent_wider_gaussian(lo: int) -> None:
+    p, q = nz.gauss_abs_pmf(49.40625, 511), nz.gauss_abs_pmf(1.01 * 49.40625, 511)
+    assert nz.chi2_gof(nz.fold_abs(sample_hist(q, 10**10, 1)), p, lo)[2] < 1e-6
+
+
+def test_symmetry_test_detects_a_sign_bias() -> None:
+    p = nz.gauss_abs_pmf(49.40625, 511)
+    assert nz.symmetry_test(sample_hist(p, 10**10, 3))[2] > 1e-3
+    assert nz.symmetry_test(sample_hist(p, 10**10, 3, p_neg=0.5003))[2] < 1e-6
+
+
+def test_gauss_abs_pmf_matches_the_noncentrality_reference() -> None:
+    p = nz.gauss_abs_pmf(49.4, 600)
+    assert p.sum() == pytest.approx(1.0, abs=1e-15)
+    assert p[0] == pytest.approx(1 - 2 * ndtr(-0.5 / 49.4))
+    assert p[100] == pytest.approx(2 * (ndtr(-99.5 / 49.4) - ndtr(-100.5 / 49.4)))
