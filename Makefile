@@ -5,7 +5,7 @@ SV_SRCS := $(shell find rtl -name '*.sv' -not -path 'rtl/soc/*' -not -path 'rtl/
 # stand-ins (tb/models/, lint only). Read from the submodule, never copied.
 ETH_SRCS := $(wildcard rtl/eth/rtl/*.sv rtl/eth/examples/rx_stats/reset_sync.sv rtl/eth/examples/rx_stats/xilinx/clk_gen.sv rtl/eth/tb/models/*.sv)
 
-.PHONY: setup channels model-kp4 model-ber xcheck model-test lint sim synth-ooc sim-full formal fw synth impl prog ber plots reports ci clean
+.PHONY: setup channels model-kp4 model-ber xcheck noise-stats model-test lint sim synth-ooc sim-full formal fw synth impl prog ber plots reports ci clean
 
 setup:
 	python3 -m venv .venv
@@ -25,6 +25,9 @@ model-ber:
 xcheck:  # serdespy cross-check (buildplan §8); needs data/raw from `make channels`
 	$(PY) scripts/serdespy_xcheck.py
 
+noise-stats:  # hardware noise histogram tests (ADR 0005/0009); needs noise_hist_hw.csv (~1 min)
+	NUMBA_NUM_THREADS=1 $(PY) scripts/noise_hist_stats.py
+
 model-test:
 	NUMBA_NUM_THREADS=1 $(PY) -m pytest -q  # threaded numba spin-waits under shared CPU load: 13 min vs 13 s
 	.venv/bin/mypy model --exclude model/tests
@@ -40,6 +43,7 @@ plots:
 	$(PY) analysis/plot_ber.py
 	$(PY) analysis/plot_xcheck.py
 	$(PY) analysis/plot_kp4.py
+	$(PY) analysis/plot_noise_hist.py  # needs `make noise-stats` (after the hardware run)
 
 sim:  # cocotb + Verilator, bit-exact vs model/ (tb/cocotb/run.py lists modules and parameters)
 	$(PY) tb/cocotb/run.py
