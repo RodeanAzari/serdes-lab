@@ -53,7 +53,11 @@ impl:  # make impl [TOP=noise_hist_top]: board build + bitstream in syn/build/$(
 	mkdir -p syn/build && cd syn/build && ../../scripts/vivado.sh -mode batch -nojournal -nolog \
 	  -source ../build_board.tcl -tclargs $(or $(TOP),noise_hist_top) $$(git rev-parse --short=8 HEAD)
 
-sim-full formal fw synth prog ber reports:
+prog:  # make prog [TOP=noise_hist_top]: JTAG load of syn/build/$(TOP)/$(TOP).bit; claim the board first
+	mkdir -p syn/build && cd syn/build && ../../scripts/vivado.sh -mode batch -nojournal -nolog \
+	  -source ../prog.tcl -tclargs $(CURDIR)/syn/build/$(or $(TOP),noise_hist_top)/$(or $(TOP),noise_hist_top).bit
+
+sim-full formal fw synth ber reports:
 	@echo "make $@: not implemented yet (see docs/buildplan.md §11)"; exit 1
 
 ci: lint sim model-test

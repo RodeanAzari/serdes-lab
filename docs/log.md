@@ -269,3 +269,27 @@ would also have failed on it.
   (1 LUT, 5.8 ns route); standalone the FIR had +2.85 ns. First fix if slack runs out:
   duplicate the history registers / max_fanout.
 - `make ci` green (lint 11 modules, 25 cocotb runs, 103 pytest).
+
+## 2026-11-10: Phase B: hardware noise histogram RTL (ADR 0009)
+
+- `hist_bram` (5eba067): clamp ±512 → 1024 × 48 b saturating counters, BRAM RMW with
+  distance-1/2 same-bin forwarding. Registered forward selects + carry-out saturation took OOC
+  WNS from −1.636 to **+0.921 ns** @ 8 ns; 214 LUT, 3 BRAM tiles per lane.
+- `noise_hist_core` (802d275): noise_ctrl (UDP protocol, docs/registers.md) + 8 lfsr258 +
+  2 noise_gen P = 4 + 8 hist_bram. cocotb: histograms bin-for-bin equal to the model (unbroken,
+  pause/resume ×3, max σ with clamping), every error code, truncated datagram dropped.
+- Bug injection: hist_bram 9/9; ctrl + core 20/22. Both misses are equivalent mutants:
+  READ-while-running (implied by !drained) and the drain gate (the first READ `rd_en` follows
+  28 reply header bytes, the pipeline drains in 17). Gate kept as a guard and for
+  STATUS.drained; documented in the RTL. Added `test_read_waits_for_drain` anyway (σ_reg = 1,
+  no handshake gaps, READ polled from START) to check the end-to-end property.
+- **Test bug:** the "truncated not dropped" mutant hung `Port.send()` (no clock bound) for
+  2 h 22 min of CPU instead of failing. `send()` now fails on a stalled command; mutant caught.
+- `noise_hist_top` (2b74228, 0aee872) on fpga-eth-core `eth-core-v0.2` (submodule `rtl/eth`).
+  `make lint` now includes the eth-core RTL and its Xilinx stand-in models (15 tops clean).
+  MAC set to 02:00:0A:0B:0C:0D = the host's existing static neighbour for 192.168.10.2
+  (eth-core has no ARP).
+- Model: chi-square GOF / sign symmetry for the hardware histogram (8cfe245). Host script
+  `scripts/noise_hist_run.py` (status / exact / run). `make prog` (JTAG via Vivado).
+- Request 0011 to P2 (eth-core "Used by"): done by P2 the same day.
+- `make ci` green (lint 15 tops, 28 cocotb runs, 110 pytest).

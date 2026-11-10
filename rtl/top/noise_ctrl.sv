@@ -6,7 +6,8 @@
 // A truncated datagram (s_tuser_i on tlast) is dropped without a reply.
 //
 // CONFIG bytes 1..331 shift through cfg_sh_q (big-endian fields, fixed slices); they are
-// applied at tlast only if the length is 332, the run is stopped, no clear is in progress and
+// applied two clocks after tlast (S_CHK registers the seed/sigma checks, then S_EXEC) only if
+// the length is 332, the run is stopped, no clear is in progress, sigma < 2^17 and
 // every seed word is valid. Nothing changes otherwise.
 //
 // Run gate en_o (registered): high while running and the word count is below N (N = 0:
@@ -65,7 +66,7 @@ module noise_ctrl #(
   // (lfsr258 a_alive) before the first CONFIG. Never run: START needs CONFIG.
   localparam logic [319:0] SEED_RST = {64'd8388608, 64'd131072, 64'd4096, 64'd512, 64'd2};
 
-  typedef enum logic [2:0] {S_RX, S_EXEC, S_HDR, S_FETCH, S_WAIT, S_BIN} state_t;
+  typedef enum logic [2:0] {S_RX, S_CHK, S_EXEC, S_HDR, S_FETCH, S_WAIT, S_BIN} state_t;
   state_t state_q;
 
   // ---- receive ---------------------------------------------------------------------------
@@ -83,6 +84,7 @@ module noise_ctrl #(
   logic [63:0]            c_len;
   logic [LANES-1:0][319:0] c_seed;
   logic                   c_seed_ok;
+  logic                   cfg_ok_q;  // seed + sigma checks, registered in S_CHK (timing: 8 ns)
 
   always_comb begin
     c_sigma   = cfg_sh_q[SH_W-1 -: 24];
@@ -100,12 +102,14 @@ module noise_ctrl #(
 
   // ---- run state --------------------------------------------------------------------------
   logic [63:0] words_q, runlen_q;
+  logic [63:0] left_q;     // runlen_q - words_q when runlen_q != 0: the stop test needs no
+                           // 64 b add + compare (timing: 8 ns, see the run-gate block)
   logic [16:0] sigma_q;
   logic        running_q, configured_q;
   logic [4:0]  idle_q;
   logic        drained, reached, clearing;
 
-  assign reached  = (runlen_q != 0) && (words_q == runlen_q);
+  assign reached  = (runlen_q != 0) && (left_q == 0);
   assign drained  = (idle_q == 5'(DRAIN));
   assign configured_o = configured_q;
   assign clearing = hist_busy_i || clear_o;
@@ -130,7 +134,7 @@ module noise_ctrl #(
     unique case (op_q)
       8'h01: if (len_q != 9'(CFG_LEN))            code = 8'd2;
              else if (running_q || clearing)      code = 8'd1;
-             else if (!c_seed_ok || c_sigma[23:17] != '0) code = 8'd3;
+             else if (!cfg_ok_q)                  code = 8'd3;
              else                                 apply_cfg = 1'b1;
       8'h02: if (len_q != 9'd1)                   code = 8'd2;
              else if (!configured_q || clearing || reached) code = 8'd1;
@@ -146,17 +150,22 @@ module noise_ctrl #(
     endcase
   end
 
-  // run gate next state: stop with words == N exactly (N = runlen in force after this clock)
+  // run gate next state: stop with words == N exactly (N = runlen in force after this clock).
+  // hit = (N != 0 && w_next >= N), without the 64 b add + compare: on a CONFIG clock w_next = 0
+  // and N != 0, so it is false; otherwise words_q <= N (a_stops_at_n), so it is
+  // w_next == N, i.e. left_q - en == 0.
   logic [63:0] w_next, n_next;
-  logic        run_next;
+  logic        run_next, hit;
 
   always_comb begin
     w_next   = (state_q == S_EXEC && apply_cfg) ? 64'd0 : words_q + 64'(en_o);
     n_next   = (state_q == S_EXEC && apply_cfg) ? c_len : runlen_q;
+    hit      = !(state_q == S_EXEC && apply_cfg) && runlen_q != 0
+               && (en_o ? left_q == 64'd1 : left_q == 64'd0);
     run_next = running_q;
     if (state_q == S_EXEC && do_start) run_next = 1'b1;
     if (state_q == S_EXEC && do_stop)  run_next = 1'b0;
-    if (n_next != 0 && w_next >= n_next) run_next = 1'b0;
+    if (hit) run_next = 1'b0;
   end
 
   always_comb begin
@@ -187,7 +196,9 @@ module noise_ctrl #(
       if (idx_q == 9'd2) arg2_q <= s_tdata_i;
     end
 
+    cfg_ok_q  <= c_seed_ok && c_sigma[23:17] == '0;
     words_q   <= w_next;
+    left_q    <= (state_q == S_EXEC && apply_cfg) ? c_len : left_q - 64'(en_o);
     running_q <= run_next;
     en_o      <= run_next;
     if (en_o) idle_q <= '0;
@@ -199,9 +210,10 @@ module noise_ctrl #(
         if (s_tlast_i) begin
           len_q   <= (idx_q == '1) ? idx_q : idx_q + 1'b1;
           idx_q   <= '0;
-          state_q <= s_tuser_i ? S_RX : S_EXEC;  // truncated: drop silently
+          state_q <= s_tuser_i ? S_RX : S_CHK;  // truncated: drop silently
         end
       end
+      S_CHK: state_q <= S_EXEC;  // cfg_sh_q is complete: cfg_ok_q settles
       S_EXEC: begin
         if (apply_cfg) begin
           seed_o       <= c_seed;
@@ -215,7 +227,7 @@ module noise_ctrl #(
         rd_ok_q   <= do_read;
         // reply header: the state this command leaves (after this clock)
         hdr_q <= {(code == 8'd4) ? 8'hFF : (op_q | 8'h80), code,
-                  3'b0, drained && !run_next, n_next != 0 && w_next == n_next,
+                  3'b0, drained && !run_next, hit,
                   configured_q || apply_cfg, clearing || apply_cfg, run_next,
                   w_next, n_next, 7'd0, apply_cfg ? c_sigma[16:0] : sigma_q, BUILD_ID,
                   arg1_q, arg2_q};
@@ -253,6 +265,7 @@ module noise_ctrl #(
       configured_q <= 1'b0;
       words_q      <= '0;
       runlen_q     <= '0;
+      left_q       <= '0;
       sigma_q      <= '0;
       idle_q       <= '0;
       seed_load_o  <= 1'b0;
@@ -267,6 +280,8 @@ module noise_ctrl #(
   end
   a_stops_at_n : assert property (@(posedge clk_i) disable iff (rst_i)
                                   !(runlen_q != 0 && words_q > runlen_q));
+  a_left : assert property (@(posedge clk_i) disable iff (rst_i)
+                            runlen_q == 0 || left_q == runlen_q - words_q);
 `endif
 
 endmodule
