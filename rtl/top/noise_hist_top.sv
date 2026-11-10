@@ -15,7 +15,7 @@ module noise_hist_top #(
     parameter int          CLK_HZ           = 125_000_000,
     parameter int          PHY_RST_CYCLES   = CLK_HZ / 100,  // 10 ms
     parameter int          MAC_START_CYCLES = CLK_HZ / 5,    // 200 ms
-    parameter logic [47:0] OWN_MAC          = 48'h02_00_0A_0B_0C_0E,
+    parameter logic [47:0] OWN_MAC          = 48'h02_00_0A_0B_0C_0D,  // = the host's static neighbour for 192.168.10.2 (no ARP; one board)
     parameter logic [31:0] OWN_IP           = 32'hC0_A8_0A_02,  // 192.168.10.2
     parameter logic [15:0] UDP_PORT         = 16'd26400,
     parameter logic [31:0] BUILD_ID         = 32'h0,            // git commit (syn script)

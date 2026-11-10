@@ -5,7 +5,7 @@ Single source for every host-visible field. RTL: `rtl/top/noise_ctrl.sv`. Host:
 
 ## Noise histogram board (`noise_hist_top`): UDP command protocol
 
-Board address `192.168.10.2`, UDP port `26400`, MAC `02:00:0A:0B:0C:0E`. The board replies to
+Board address `192.168.10.2`, UDP port `26400`, MAC `02:00:0A:0B:0C:0D` (no ARP: the host needs a static neighbour entry, already present for the shared board). The board replies to
 the sender of each command (address learned from the datagram, no ARP). One command at a
 time: the host waits for the reply (or times out and retries). All multi-byte fields are
 **big-endian**.
