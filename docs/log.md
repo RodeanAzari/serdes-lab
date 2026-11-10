@@ -250,3 +250,22 @@ would also have failed on it.
   multiplies in DSP with MREG/PREG and the C-port add.
 - Trap: background bug-injection scripts edit RTL in place; don't edit those files meanwhile.
 - `make ci` green (lint 10 modules, 23 cocotb runs, 103 pytest).
+
+## 2026-11-09 (cont.): Phase B RTL: channel top
+
+- **ADR 0008** (6122345): noise word j is added to hardware symbol j, i.e. model
+  y[k] = sat(s[k] + n[k + cursor], 16). The causal RTL FIR outputs s[m − cursor]; keeping the
+  old pairing would need a runtime P-lane rotation by cursor mod P. Statistics unchanged.
+  Two `test_tx` pairing tests updated deliberately (spec change, not a loosened check).
+- `channel_top` (83d4161): tx_top → channel_fir (+11-clock delay) ‖ lfsr258 × P → noise_gen →
+  y = sat(s + n, 16) → x = sat(rs(y, 6), 7); latency 16.
+- cocotb P = 4, 2: x_o and internal y bit-exact vs `tx → pre_adc → front_end` on Ch4/Ch2 at the
+  1e-12 σ, precoder off/on, σ = 0, and full-scale taps at max σ. y must be checked directly:
+  the 7 b ADC clip hides a missing 16 b saturation. |s + n| > 2¹⁵ is a ~3.3σ event even at
+  full-scale taps, so that case runs 40 codewords (25–46 saturations per rail seen).
+- Bug injection 12/12 caught.
+- Vivado OOC P = 4 @ 8 ns post-route: **WNS +1.533 ns**, WHS +0.097 ns; 4243 LUT, 4194 FF,
+  12 DSP, 4 BRAM36, 0 latches, 0 critical warnings. Critical path: channel_fir history fanout
+  (1 LUT, 5.8 ns route); standalone the FIR had +2.85 ns. First fix if slack runs out:
+  duplicate the history registers / max_fanout.
+- `make ci` green (lint 11 modules, 25 cocotb runs, 103 pytest).
