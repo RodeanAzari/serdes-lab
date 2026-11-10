@@ -293,3 +293,10 @@ would also have failed on it.
   `scripts/noise_hist_run.py` (status / exact / run). `make prog` (JTAG via Vivado).
 - Request 0011 to P2 (eth-core "Used by"): done by P2 the same day.
 - `make ci` green (lint 15 tops, 28 cocotb runs, 110 pytest).
+- First board build failed timing (WNS −1.533 ns): CONFIG's 331-byte seed check → apply_cfg →
+  64 b add/compare → run gate, all in one clock. Fixed (3a1f17e) with S_CHK (registered CONFIG
+  check) and a down-counter for the stop test. Mutants on the new logic 4/4.
+- `make impl` (build_id 3a1f17ee): **WNS +0.241 ns, WHS +0.012 ns** @ 125 MHz; 7705 LUT,
+  11682 FF, 35 BRAM tiles, 24 DSP; 0 critical warnings, 0 latches. Methodology SYNTH-16 (16
+  address collisions) = hist_bram's same-address read/write, overridden by the distance-2
+  forward; CDC-6 = eth-core Gray pointers (constrained). Reports: syn/build/noise_hist_top/.
