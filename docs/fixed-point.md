@@ -24,7 +24,7 @@ symmetric** to ±(2^(n-1) − 1); no silent wrap anywhere.
 | ADC output x | 7 b signed | ±63 LSB | `sat(round_shift(y, 6), 7)` |
 | FFE coefficient c[i] | 10 b signed | ±511, scale per channel | `quantize_coefs`: max \|tap\| → 511 |
 | FFE product | 17 b signed | | One DSP48E1 per tap |
-| FFE accumulator | 20 b signed | full precision | 63 · 511 · 16 = 515,088 < 2¹⁹ |
+| FFE accumulator | 21 b signed | full precision | Sized for any port value: 16 · (−64)(−512) = 2¹⁹ needs 21 b (ADC ±63, coefs ±511 would fit 20 b) |
 | FFE output shift | register, 0…10 | | 6 on Ch2 and Ch4 |
 | FFE output z | 10 b signed | ±511 | `sat(round_shift(acc, shift), 10)` |
 | DFE tap b | 10 b signed | z units | Ch2 37, Ch4 45 (at the 2.4e-4 and 1e-12 points) |
