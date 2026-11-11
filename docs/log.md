@@ -320,3 +320,21 @@ would also have failed on it.
   link-local). Re-attached with usbipd and the static IP/neighbour restored by the user.
 - Long run started 13:29 (5 × 10¹² words/lane = 4 × 10¹³ samples, ~11.1 h, hourly
   checkpoints to `data/results/noise_hist_hw.csv`). Board claimed by P4 until it ends.
+
+## 2026-11-11: Phase B noise result (partial run accepted); Phase C RX + BER checker
+
+- Long noise run: the host process died at 19:57 on 2026-11-10 when WSL lost the board's USB
+  NIC (likely host sleep); last checkpoint 7.2 × 10¹² samples (18%). User accepted it as final.
+  27/27 tests pass; 19 samples beyond 7σ vs 19.4 expected (95% CI 11.4–29.7). ADR 0003 outcome
+  note; plot `docs/media/2026-11-11_phase-b_noise-histogram.png`. Lesson: disable host sleep for
+  overnight runs. A `.gitignore` trailing comment had silently disabled a pattern (git has no
+  inline comments).
+- `dfe_slicer` (ADR 0010): OOC WNS +2.834 ns @ 8 ns, critical path = the 4-LUT speculative loop
+  as predicted. An equivalent mutant showed the 13 b DFE width was 1 bit over: exact is 12 b.
+- `ber_check` (ADR 0011): reference = FIFO of TX bits counted in symbols, not a clock delay.
+- `link_core`: TX → channel → noise → ADC → FFE → DFE → demap → BER counters. Error counts equal
+  the bit-exact model exactly (hundreds of errors per run, Ch4 and Ch2, precoder off/on, P 4/2).
+  RX starts at m0 = 32 at P = 4 (both the FIR and FFE windows full, word-aligned).
+- Mutation: 16/16 (dfe_slicer, demap), 13/13 (ber_check), 4/4 (link wiring).
+- Next: board top for the BER campaign (run control, counter readout over UDP), full-design
+  synthesis (DSP count, timing), then hardware BER vs model at 1e-3…1e-6.
