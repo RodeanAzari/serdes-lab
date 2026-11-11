@@ -28,5 +28,5 @@ symmetric** to ±(2^(n-1) − 1); no silent wrap anywhere.
 | FFE output shift | register, 0…10 | | 6 on Ch2 and Ch4 |
 | FFE output z | 10 b signed | ±511 | `sat(round_shift(acc, shift), 10)` |
 | DFE tap b | 10 b signed | z units | Ch2 37, Ch4 45 (at the 2.4e-4 and 1e-12 points) |
-| DFE/slicer input v = z − b·d | 12 b signed | \|v\| ≤ 511 + 3·511 | b·d is shift/add (d ∈ ±1, ±3) |
+| DFE/slicer input v = z − b·d | 12 b signed | −2048 ≤ v ≤ 2047 (any port value: −512 − 3·512, 511 + 3·512) | b·d is shift/add (d ∈ ±1, ±3); 4 candidates per symbol (ADR 0010) |
 | Slicer threshold t2 (= 2·h0) | 10 b unsigned | z units | Ch2 158, Ch4 124; thresholds −t2, 0, +t2, ties go up |

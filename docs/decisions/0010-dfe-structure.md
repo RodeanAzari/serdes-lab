@@ -1,7 +1,7 @@
 # ADR 0010: 1-tap DFE at P = 4: loop-unrolled (speculative) decisions
 
 **Status:** accepted 2026-11-10 (buildplan §7.1: "unroll or speculate if it limits Fmax, and
-record which"). Timing numbers are [TBD] until OOC synthesis. **Phase:** C.
+record which"). Measured 2026-11-11 (below). **Phase:** C.
 Model: `model/fixed.py` `dfe1_int` (sequential reference). RTL: `rtl/rx/dfe_slicer.sv`.
 
 ## Context
@@ -52,3 +52,10 @@ same `d_init` at the first symbol the RTL accepts.
   saves at most 2 LUT levels. Kept as the fallback if the chain fails timing.
 - **Interleaved independent DFEs (each fed back over P symbols):** wrong algorithm: the
   feedback must use d[k−1], not d[k−P].
+
+## Measured (2026-11-11)
+
+OOC post-route, `make synth-ooc TOP=dfe_slicer GEN="P=4"`, xc7a100t −1 at 8 ns: **WNS +2.834 ns**,
+WHS +0.207 ns, 411 LUT, 271 FF, 0 DSP, 0 latches. The critical path is the loop as predicted:
+`cand_q` → LUT3 + 4 × LUT6 → `last_q`, 5.111 ns (1.27 ns logic, 3.84 ns routing). The direct
+chain's estimate (~10–12 ns) was not built; the parallel-prefix fallback is not needed.
