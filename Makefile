@@ -45,6 +45,7 @@ plots:
 	$(PY) analysis/plot_kp4.py
 	$(PY) analysis/plot_noise_hist.py  # needs `make noise-stats` (after the hardware run)
 	$(PY) analysis/plot_ber_hw.py  # needs scripts/ber_run.py sweep + model
+	$(PY) analysis/plot_eye.py  # needs scripts/ber_run.py capture (board, ILA)
 
 sim:  # cocotb + Verilator, bit-exact vs model/ (tb/cocotb/run.py lists modules and parameters)
 	$(PY) tb/cocotb/run.py
@@ -62,7 +63,10 @@ prog:  # make prog [TOP=noise_hist_top]: JTAG load of syn/build/$(TOP)/$(TOP).bi
 	mkdir -p syn/build && cd syn/build && ../../scripts/vivado.sh -mode batch -nojournal -nolog \
 	  -source ../prog.tcl -tclargs $(CURDIR)/syn/build/$(or $(TOP),noise_hist_top)/$(or $(TOP),noise_hist_top).bit
 
-sim-full formal fw synth ber reports:
+sim-full:  # long cocotb runs (tb/cocotb/run.py FULL): P = 2 of channel_top and the full link; not in `make ci`
+	$(PY) tb/cocotb/run.py --full
+
+formal fw synth ber reports:
 	@echo "make $@: not implemented yet (see docs/buildplan.md §11)"; exit 1
 
 ci: lint sim model-test

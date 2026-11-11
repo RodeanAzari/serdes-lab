@@ -1,4 +1,7 @@
-"""Build and run the cocotb tests with Verilator: python tb/cocotb/run.py [test_module ...]"""
+"""Build and run the cocotb tests with Verilator:
+    python tb/cocotb/run.py [test_module ...]           # make sim
+    python tb/cocotb/run.py --full [test_module ...]    # make sim-full: the FULL parameter sets
+"""
 
 from __future__ import annotations
 
@@ -31,7 +34,7 @@ TESTS: dict[str, tuple[str, list[str], list[dict[str, int]]]] = {
                                          "rtl/channel/lfsr258.sv", "rtl/channel/noise_rom.sv",
                                          "rtl/channel/noise_lane.sv", "rtl/channel/noise_gen.sv",
                                          "rtl/channel/channel_top.sv"],
-                         [{"P": 4}, {"P": 2}]),
+                         [{"P": 4}]),
     "test_hist_bram": ("hist_bram", ["rtl/stats/hist_bram.sv"],
                        [{}, {"DATA_W": 8, "IDX_W": 4, "COUNT_W": 4}]),
     "test_noise_hist_core": ("noise_hist_core",
@@ -59,7 +62,7 @@ TESTS: dict[str, tuple[str, list[str], list[dict[str, int]]]] = {
                                      "rtl/rx/dfe_slicer.sv", "rtl/rx/demap.sv",
                                      "rtl/rx/rx_top.sv", "rtl/stats/ber_check.sv",
                                      "rtl/top/link_core.sv"],
-                       [{"P": 4}, {"P": 2}]),
+                       [{"P": 4}]),
     "test_ber_core": ("ber_core", ["rtl/tx/prbs31_par.sv", "rtl/tx/rs_enc.sv",
                                    "rtl/tx/gearbox.sv", "rtl/tx/pam4_map.sv",
                                    "rtl/tx/tx_top.sv", "rtl/channel/channel_fir.sv",
@@ -70,7 +73,14 @@ TESTS: dict[str, tuple[str, list[str], list[dict[str, int]]]] = {
                                    "rtl/rx/rx_top.sv", "rtl/stats/ber_check.sv",
                                    "rtl/top/link_core.sv", "rtl/top/link_ctrl.sv",
                                    "rtl/top/ber_core.sv"],
-                      [{"P": 4, "BUILD_ID": 0xC0FFEE02}, {"P": 2, "BUILD_ID": 0xC0FFEE02}]),
+                      [{"P": 4, "BUILD_ID": 0xC0FFEE02}]),
+}
+
+# long runs, `make sim-full` (run.py --full): kept out of `make sim` (< 5 min budget)
+FULL: dict[str, list[dict[str, int]]] = {
+    "test_channel_top": [{"P": 2}],
+    "test_link_core": [{"P": 2}],
+    "test_ber_core": [{"P": 2, "BUILD_ID": 0xC0FFEE02}],
 }
 
 # extra Verilator build arguments per test module (string parameters stay out of the run tag)
@@ -83,11 +93,11 @@ BUILD_ARGS: dict[str, list[str]] = {
 }
 
 
-def main(names: list[str]) -> int:
+def main(names: list[str], full: bool = False) -> int:
     failed = 0
-    for name in names or list(TESTS):
+    for name in names or list(FULL if full else TESTS):
         top, srcs, param_sets = TESTS[name]
-        for params in param_sets:
+        for params in FULL.get(name, []) if full else param_sets:
             tag = "_".join(f"{k}{v}" for k, v in params.items()) or "default"
             build_dir = ROOT / "sim_build" / f"{name}_{tag}"
             runner = get_runner("verilator")
@@ -115,4 +125,5 @@ def main(names: list[str]) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
+    args = sys.argv[1:]
+    sys.exit(main([a for a in args if a != "--full"], "--full" in args))
