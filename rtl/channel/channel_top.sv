@@ -27,7 +27,9 @@ module channel_top #(
     input  wire logic [P-1:0][319:0]      noise_seed_i,  // lfsr258 seed per lane
     input  wire logic [16:0]              sigma_i,       // docs/fixed-point.md
     output logic      [P-1:0][6:0]        x_o,           // ADC samples, signed, +-63
-    output logic                          valid_o
+    output logic                          valid_o,
+    output logic      [P-1:0][1:0]        idx_o,         // TX level index (precoded), BER ref
+    output logic                          idx_valid_o    // TX word m: 16 clocks before x word m
 );
   localparam int D     = 11;  // (1 + 13) - 3
   localparam int YS_W  = (S_W > 16 ? S_W : 16) + 1;  // s + n, no overflow
@@ -37,6 +39,9 @@ module channel_top #(
   // ---- TX ----------------------------------------------------------------------------------
   logic [P-1:0][1:0] idx;
   logic              tx_valid;
+
+  assign idx_o       = idx;
+  assign idx_valid_o = tx_valid;
 
   tx_top #(.P(P)) u_tx (
       .clk_i, .rst_i, .prbs_seed_i, .precode_i,
