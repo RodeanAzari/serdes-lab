@@ -19,6 +19,7 @@ module link_core #(
     parameter  int    SH_W      = 4,
     parameter  int    B_W       = 10,
     parameter  int    T_W       = 10,
+    parameter  int    Z_W       = 10,  // FFE output (rx_top)
     parameter  int    CNT_W     = 64,
     parameter  int    H_W       = 16,
     parameter  string INIT_FILE = "noise_tables.mem",
@@ -60,10 +61,20 @@ module link_core #(
   logic [2*P-1:0] rx_bits, tx_bits;
   logic           rx_valid, tx_bits_valid;
 
-  rx_top #(.P(P), .N(N), .X0(L - 1), .C_W(C_W), .SH_W(SH_W), .B_W(B_W), .T_W(T_W)) u_rx (
+  // FFE output for the on-chip logic analyzer only (build_board.tcl inserts an ILA on every
+  // mark_debug net; Phase C eye capture). z_dbg word k = RX symbols 4k..4k+3 from m0, symbol 0
+  // in the low bits; z_valid_dbg rises with RX word 0.
+  /* verilator lint_off UNUSEDSIGNAL */  // no RTL reader: probed by the ILA in synthesis
+  (* mark_debug = "true" *) logic [P-1:0][Z_W-1:0] z_dbg;
+  (* mark_debug = "true" *) logic                  z_valid_dbg;
+  /* verilator lint_on UNUSEDSIGNAL */
+
+  rx_top #(.P(P), .N(N), .X0(L - 1), .C_W(C_W), .Z_W(Z_W), .SH_W(SH_W), .B_W(B_W),
+           .T_W(T_W)) u_rx (
       .clk_i, .rst_i, .coef_i, .shift_i, .b_i, .t2_i, .precode_i, .x_i(x), .valid_i(x_valid),
+      .z_o(z_dbg), .z_valid_o(z_valid_dbg),
       /* verilator lint_off PINCONNECTEMPTY */
-      .z_o(), .z_valid_o(), .d_o(),
+      .d_o(),
       /* verilator lint_on PINCONNECTEMPTY */
       .data_o(rx_bits), .valid_o(rx_valid)
   );

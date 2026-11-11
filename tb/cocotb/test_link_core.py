@@ -75,11 +75,18 @@ async def run(dut, rng, name: str, precoder: bool, sigma: int, holdoff: int,  # 
     dut.rst_i.value = 0
 
     seen = cyc = 0
+    z_dbg: list[int] = []  # ILA probe (Phase C eye): word k must be the model's z[4k .. 4k+3]
     while seen < n_rx:  # the counters include an RX word 2 clocks after it is visible here
         await FallingEdge(dut.clk_i)
         cyc += 1
         assert cyc < len(t.a) // P + 200, "timeout: RX words stopped"
         seen += int(dut.u_rx.valid_o.value)
+        if int(dut.z_valid_dbg.value):
+            w = int(dut.z_dbg.value)
+            u = [(w >> (10 * p)) & 0x3FF for p in range(P)]  # symbol 0 in the low bits
+            z_dbg += [v - 1024 if v >= 512 else v for v in u]
+    n_z = min(len(z_dbg), len(out.z))
+    assert n_z > 1000 and z_dbg[:n_z] == out.z[:n_z].tolist(), "ILA probe z_dbg != model z"
     for _ in range(2):
         await FallingEdge(dut.clk_i)
     got = rx.ErrCount(int(dut.bits_o.value), int(dut.bit_err_o.value), int(dut.sym_err_o.value))

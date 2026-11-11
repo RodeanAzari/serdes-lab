@@ -4,6 +4,7 @@
     ber_run.py exact --channel kr_ch4_31p4db --snr 21 [--precoder] [--cw 200] [--seed S]
     ber_run.py sweep --channel kr_ch4_31p4db --snr 22,23,24 --bits 1e10 [--precoder] [--seed S]
     ber_run.py model --channel kr_ch4_31p4db [--precoder] [--max-model-bits 1.2e8]  # no board
+    ber_run.py capture --channel kr_ch4_31p4db --snr 24  # ILA of the FFE output vs the model
 
 `exact`: a run of R bits on the board vs the bit-exact model (same seeds, same R): bit errors,
 symbol errors and bits must be equal. `sweep`: one fixed-length run per SNR point (R chosen in
@@ -36,7 +37,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from model import fixed as fx  # noqa: E402
-from model import noise, prng, rs, rx, tx  # noqa: E402
+from model import noise, pam4, prng, rs, rx, tx  # noqa: E402
 from model.equalizer import mmse_ffe_dfe  # noqa: E402
 from model.link import noise_sigma  # noqa: E402
 from model.stats import clopper_pearson  # noqa: E402
@@ -328,9 +329,92 @@ def model(a: argparse.Namespace) -> int:
     return 0
 
 
+ILA_WORDS, Z_W = 4096, 10
+
+
+def read_ila_csv(path: Path) -> tuple[np.ndarray, np.ndarray]:
+    """Vivado write_hw_ila_data CSV -> (z words as (rows, P) signed, valid per row)."""
+    rows = list(csv.reader(path.open()))
+    head = rows[0]
+    data = [r for r in rows[1:] if r and not r[0].startswith("Radix")]
+    zc = [i for i, h in enumerate(head) if "z_dbg" in h]
+    vc = [i for i, h in enumerate(head) if "z_valid_dbg" in h]
+    if len(zc) != 1 or len(vc) != 1:
+        raise RuntimeError(f"ILA CSV columns not found in {head}")
+    w = [int(r[zc[0]], 16) for r in data]
+    z = np.array([[(x >> (Z_W * p)) & ((1 << Z_W) - 1) for p in range(P)] for x in w])
+    z = np.where(z >= 1 << (Z_W - 1), z - (1 << Z_W), z)
+    return z.astype(np.int64), np.array([int(r[vc[0]], 16) for r in data])
+
+
+def capture(bd: Board, a: argparse.Namespace) -> int:
+    """ILA capture of the FFE output from RX word 0 (syn/ila_capture.tcl), compared sample for
+    sample with the model's z for the same seeds; saves z, the DFE decisions and the slicer
+    input v = z - b * level(d[k-1]) for the eye plot (analysis/plot_eye.py)."""
+    ltx = ROOT / "syn/build/ber_top/ber_top.ltx"
+    raw = ROOT / "syn/build/ber_top/ila_capture.csv"
+    pt = point(a.channel, float(a.snr), a.precoder, a.seed)
+    bd.cmd(b"\x03")
+    st = bd.ok(pt.config(0))  # unbounded: the ILA needs only the first 4096 words
+    check_build(st)
+    raw.unlink(missing_ok=True)
+    proc = subprocess.Popen([str(ROOT / "scripts/vivado.sh"), "-mode", "batch", "-nojournal",
+                             "-nolog", "-source", str(ROOT / "syn/ila_capture.tcl"), "-tclargs",
+                             str(ltx), str(raw)], cwd=ROOT / "syn/build", stdout=subprocess.PIPE,
+                            text=True)  # fmt: skip
+    assert proc.stdout is not None
+    started = False
+    for line in proc.stdout:
+        if "ILA_" in line or "ERROR" in line:
+            print("  vivado:", line.rstrip())
+        if line.startswith("ILA_ARMED") and not started:
+            bd.ok(b"\x02")
+            started = True
+    if proc.wait(timeout=300) != 0 or not started or not raw.exists():
+        raise RuntimeError(f"ILA capture failed (exit {proc.returncode}, started {started})")
+    bd.cmd(b"\x03")
+    z_hw, valid = read_ila_csv(raw)
+    if len(z_hw) != ILA_WORDS or not valid.all():
+        raise RuntimeError(f"ILA: {len(z_hw)} rows, {int((valid == 0).sum())} not valid")
+    z_hw = z_hw.reshape(-1)
+
+    if not _TB:
+        _TB.append(noise.build_tables(noise.NoiseCfg()))
+    n_cw = math.ceil((len(z_hw) + 2 * M0) / (rs.N * rs.M // 2)) + 1
+    t = tx.tx(n_cw, pt.prbs_seed, pt.precoder)
+    y = tx.pre_adc(t.a, np.array(pt.hq, dtype=np.int64), pt.cursor,
+                   prng.lane_seeds(pt.noise_seed, P), _TB[0], pt.sigma_reg)  # fmt: skip
+    x_hw = tx.front_end(y, CFG)[tx.valid(len(t.a), L, pt.cursor)]
+    out = rx.rx(x_hw, pt.regs, CFG, pt.precoder, d_init=0, p_init=0, start=M0 - (L - 1))
+    z_mo = out.z[: len(z_hw)]
+    diff = int(np.count_nonzero(z_hw != z_mo))
+    d = out.idx[: len(z_hw)]
+    v = z_hw - int(pt.regs.dfe_b) * pam4.LEVELS[np.concatenate([[0], d[:-1]])]
+
+    name = f"{a.channel}{'_pre' if a.precoder else ''}_{a.snr:g}db"
+    res = RESULTS / f"ffe_capture_{name}.csv"
+    with res.open("w", newline="") as fh:
+        w = csv.writer(fh)
+        w.writerow(["k", "z_hw", "z_model", "d_model", "v"])
+        w.writerows(zip(range(len(z_hw)), z_hw.tolist(), z_mo.tolist(), d.tolist(), v.tolist(),
+                        strict=True))  # fmt: skip
+    sidecar(res, {"SNR (dB)": a.snr, "sigma_reg": pt.sigma_reg, "seed": a.seed,
+                  "prbs_seed": pt.prbs_seed, "noise_seed": pt.noise_seed,
+                  "b (dfe)": int(pt.regs.dfe_b), "t2": int(pt.regs.t2),
+                  "build id": f"{st['build']:08x}", "samples differing (hw vs model)": diff,
+                  "verdict": "PASS" if diff == 0 else "FAIL"},
+            "ILA capture of the FFE output z (rx_top z_o), 4096 words x P = 16384 symbols from "
+            "RX symbol m0 (k = 0). z_model: bit-exact model, same seeds. d_model: the model's "
+            "DFE decision (level index); v = z - b * level(d[k-1]) is the slicer input; the "
+            "slicer thresholds are -t2, 0, +t2 (dfe_slicer.sv).")  # fmt: skip
+    print(f"{'PASS' if diff == 0 else 'FAIL'}: {diff} of {len(z_hw)} FFE samples differ "
+          f"from the model -> {res}")
+    return 0 if diff == 0 else 1
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("mode", choices=["status", "exact", "sweep", "model"])
+    ap.add_argument("mode", choices=["status", "exact", "sweep", "model", "capture"])
     ap.add_argument("--channel", default="kr_ch4_31p4db")
     ap.add_argument("--snr", default="21")
     ap.add_argument("--precoder", action="store_true")
@@ -350,6 +434,9 @@ def main() -> int:
     if a.mode == "exact":
         a.snr = float(a.snr)
         return exact(bd, a)
+    if a.mode == "capture":
+        a.snr = float(a.snr)
+        return capture(bd, a)
     return sweep(bd, a)
 
 

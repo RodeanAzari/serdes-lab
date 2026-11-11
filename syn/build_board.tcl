@@ -61,6 +61,39 @@ if {$top eq "ber_top"} {
     if {$n != 64} { error "ber_top: $n DSP48E1 in the FFE, expected 64 (P 4 x N 16)" }
 }
 
+# ILA on the FFE output (Phase C eye capture; capture: syn/ila_capture.tcl via ber_run.py).
+# probe0 = z_dbg (P x 10 b, symbol 0 in the low bits), probe1 = z_valid_dbg (trigger).
+if {$top eq "ber_top"} {
+    proc flat_index {n} {  ;# z_dbg[k] or z_dbg[p][b] -> flat bit index (Z_W = 10)
+        if {[regexp {\[(\d+)\]\[(\d+)\]$} $n -> a b]} { return [expr {$a * 10 + $b}] }
+        if {[regexp {\[(\d+)\]$} $n -> a]} { return $a }
+        error "ILA: cannot index net $n"
+    }
+    set z {}
+    foreach n [get_nets -quiet -hier -filter {MARK_DEBUG == 1 && NAME =~ *z_dbg*}] {
+        lappend z [list [flat_index $n] $n]
+    }
+    set z [lmap e [lsort -integer -index 0 $z] {lindex $e 1}]
+    set v [get_nets -quiet -hier -filter {MARK_DEBUG == 1 && NAME =~ *z_valid_dbg*}]
+    if {[llength $z] != 40 || [llength $v] != 1} {
+        error "ILA: expected 40 z_dbg nets and 1 z_valid_dbg, got [llength $z] and [llength $v]"
+    }
+    set clk_net [get_nets -quiet clk]
+    if {$clk_net eq ""} { error "ILA: core clock net 'clk' not found" }
+    create_debug_core u_ila ila
+    set_property C_DATA_DEPTH 4096 [get_debug_cores u_ila]
+    set_property C_INPUT_PIPE_STAGES 1 [get_debug_cores u_ila]
+    set_property C_TRIGIN_EN false [get_debug_cores u_ila]
+    set_property C_TRIGOUT_EN false [get_debug_cores u_ila]
+    connect_debug_port u_ila/clk $clk_net
+    set_property port_width 40 [get_debug_ports u_ila/probe0]
+    connect_debug_port u_ila/probe0 $z
+    create_debug_port u_ila probe
+    set_property port_width 1 [get_debug_ports u_ila/probe1]
+    connect_debug_port u_ila/probe1 $v
+    connect_debug_port dbg_hub/clk $clk_net
+}
+
 opt_design
 place_design
 phys_opt_design
@@ -84,3 +117,4 @@ close $fh
 puts "BOARD_RESULT top=$top build_id=$build_id WNS=$wns WHS=$whs"
 if {$wns < 0 || $whs < 0} { error "timing not met: no bitstream (WNS $wns, WHS $whs)" }
 write_bitstream -force [file join $out $top.bit]
+if {[llength [get_debug_cores -quiet u_ila]] > 0} { write_debug_probes -force [file join $out $top.ltx] }
