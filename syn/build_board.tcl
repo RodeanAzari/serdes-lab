@@ -2,7 +2,7 @@
 #
 #   vivado -mode batch -source syn/build_board.tcl -tclargs <top> <build_id_hex>
 #
-# Sources: rtl/{channel,stats,top,tx}/*.sv, fpga-eth-core (submodule rtl/eth at its release tag):
+# Sources: rtl/{channel,rx,stats,top,tx}/*.sv, fpga-eth-core (submodule rtl/eth at its release tag):
 # rtl/*.sv plus its example clk_gen/reset_sync (consumer guide). Constraints per top below.
 # Outputs in syn/build/<top>/ (gitignored); `make reports` copies reports to docs/reports/<tag>/.
 # The bitstream is written only if setup and hold are met (CLAUDE.md §3: no negative slack).
@@ -28,11 +28,16 @@ switch -- $top {
                        [file join $eth constr arty_a7_100_pins_tx.xdc] \
                        [file join $root constr noise_hist_timing.xdc]]
     }
+    ber_top {
+        set xdcs [list [file join $eth constr arty_a7_100_pins.xdc] \
+                       [file join $eth constr arty_a7_100_pins_tx.xdc] \
+                       [file join $root constr noise_hist_timing.xdc]]
+    }
     default { error "unknown board top '$top'" }
 }
 
 set sv {}
-foreach d {channel stats top tx} { lappend sv {*}[lsort [glob -nocomplain [file join $root rtl $d *.sv]]] }
+foreach d {channel rx stats top tx} { lappend sv {*}[lsort [glob -nocomplain [file join $root rtl $d *.sv]]] }
 lappend sv {*}[lsort [glob [file join $eth rtl *.sv]]]
 lappend sv [file join $eth examples rx_stats xilinx clk_gen.sv] [file join $eth examples rx_stats reset_sync.sv]
 read_verilog -sv $sv
@@ -48,6 +53,12 @@ if {[llength $bb] > 0} { error "black boxes in the netlist: $bb" }
 # written bin then collide on hardware (seen 2026-11-10; Verilator cannot show it).
 foreach r [get_cells -quiet -hier -filter {REF_NAME =~ RAMB* && NAME =~ *u_hist*}] {
     if {[get_nets -of [get_pins $r/ENARDEN]] eq "<const1>"} { error "hist RAM $r: ENARDEN tied high" }
+}
+
+# FFE multipliers must map to DSP48E1 (CLAUDE.md §14): P x N = 4 x 16 on the board, 64 in OOC.
+if {$top eq "ber_top"} {
+    set n [llength [get_cells -quiet -hier -filter {REF_NAME == DSP48E1 && NAME =~ *u_ffe*}]]
+    if {$n != 64} { error "ber_top: $n DSP48E1 in the FFE, expected 64 (P 4 x N 16)" }
 }
 
 opt_design

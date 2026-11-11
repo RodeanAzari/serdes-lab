@@ -1,4 +1,5 @@
-# Timing constraints for rtl/top/noise_hist_top.sv on the Arty A7-100T (ADR 0009).
+# Timing constraints for rtl/top/noise_hist_top.sv (ADR 0009) and rtl/top/ber_top.sv (ADR 0012,
+# same Ethernet plumbing and clocks) on the Arty A7-100T.
 # Pins: rtl/eth/constr/arty_a7_100_pins.xdc + arty_a7_100_pins_tx.xdc (fpga-eth-core at
 # eth-core-v0.2). Async FIFO pointer CDC: rtl/eth/constr/async_fifo.xdc, read scoped to
 # async_fifo. MII figures as documented by fpga-eth-core's consumer guide for this PHY.

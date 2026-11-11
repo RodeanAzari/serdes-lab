@@ -60,6 +60,17 @@ TESTS: dict[str, tuple[str, list[str], list[dict[str, int]]]] = {
                                      "rtl/rx/rx_top.sv", "rtl/stats/ber_check.sv",
                                      "rtl/top/link_core.sv"],
                        [{"P": 4}, {"P": 2}]),
+    "test_ber_core": ("ber_core", ["rtl/tx/prbs31_par.sv", "rtl/tx/rs_enc.sv",
+                                   "rtl/tx/gearbox.sv", "rtl/tx/pam4_map.sv",
+                                   "rtl/tx/tx_top.sv", "rtl/channel/channel_fir.sv",
+                                   "rtl/channel/lfsr258.sv", "rtl/channel/noise_rom.sv",
+                                   "rtl/channel/noise_lane.sv", "rtl/channel/noise_gen.sv",
+                                   "rtl/channel/channel_top.sv", "rtl/rx/ffe.sv",
+                                   "rtl/rx/dfe_slicer.sv", "rtl/rx/demap.sv",
+                                   "rtl/rx/rx_top.sv", "rtl/stats/ber_check.sv",
+                                   "rtl/top/link_core.sv", "rtl/top/link_ctrl.sv",
+                                   "rtl/top/ber_core.sv"],
+                      [{"P": 4, "BUILD_ID": 0xC0FFEE02}, {"P": 2, "BUILD_ID": 0xC0FFEE02}]),
 }
 
 # extra Verilator build arguments per test module (string parameters stay out of the run tag)
@@ -68,6 +79,7 @@ BUILD_ARGS: dict[str, list[str]] = {
     "test_channel_top": [f'-GINIT_FILE="{ROOT}/rtl/channel/noise_tables.mem"', "--public-flat-rw"],
     "test_noise_hist_core": [f'-GINIT_FILE="{ROOT}/rtl/channel/noise_tables.mem"'],
     "test_link_core": [f'-GINIT_FILE="{ROOT}/rtl/channel/noise_tables.mem"', "--public-flat-rw"],
+    "test_ber_core": [f'-GINIT_FILE="{ROOT}/rtl/channel/noise_tables.mem"'],
 }
 
 
