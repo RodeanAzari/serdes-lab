@@ -374,3 +374,22 @@ would also have failed on it.
   Points below ~1e-7 are board-only (the model needs ~8 h per point at 7e4 b/s).
 - Open: `make sim` now 7 min 9 s (budget 5): move the P = 2 link/ber_core runs to sim-full.
   Board CIs are still Clopper-Pearson (optimistic at the low-count points by the burst factor).
+
+## 2026-11-11 (evening): ILA capture of the FFE output; make sim split
+
+- `make sim` 7 min 9 s → **4 min 10 s** (load ~13 on 16 cores): P = 2 of test_channel_top,
+  test_link_core, test_ber_core moved to `make sim-full` (run.py --full, 1 min, all pass; not
+  in `make ci`). bbd5b14.
+- ILA (70fb7cb): link_core keeps rx_top z_o / z_valid_o as mark_debug nets; build_board.tcl
+  adds a 4096-deep ILA. test_link_core now asserts z_dbg word k == model z[4k..4k+3] (sim).
+  Build 70fb7cb6: **WNS +0.602 ns, WHS +0.029 ns**; 8870 LUT, 12645 FF, 12 BRAM tiles (ILA +5),
+  76 DSP; 0 critical warnings, 0 latches.
+- Board held by P2 until ~14:50; I waited (my `status` query had already sent a few UDP packets
+  to port 26401 before I saw the hold: no listener, no effect, but it should not have run).
+- Capture problems: `CONTROL.TRIGGER_MODE` is read-only (no advanced trigger), and Vivado
+  writes one CSV column per probed net bit, named `z_dbg[p]_k[b:b]`; the build's probe-order
+  sort was wrong too (it only parsed b). Decoding is now by column name; the build checks 40
+  unique indices.
+- **`ber_run.py capture` Ch4 24 dB: 0 of 16384 FFE samples differ from the model**
+  ([csv](../data/results/ffe_capture_kr_ch4_31p4db_24db.csv)). Plot:
+  docs/media/2026-11-11_phase-c_ila-ffe-eye.png (z without DFE: overlapping; v: 4 levels).

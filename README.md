@@ -55,7 +55,7 @@ exactly these taps, scaled to integers.*
 |---|---|---|
 | A | Python golden model, channel conversion, sizing | **Done** (2026-11-07, tag `v0.1-model`) |
 | B | TX, channel FIR, noise generator, ADC in RTL | RTL bit-exact; noise validated on hardware to 7σ; captures pending |
-| C | RX FFE, DFE, slicer with fixed taps; first hardware BER | First hardware BER curves match the model (below); captures, ILA and tag pending |
+| C | RX FFE, DFE, slicer with fixed taps; first hardware BER | Hardware BER curves and ILA capture match the model (below); user captures and tag pending |
 | D | KP4 decode on the FPGA + error statistics | Not started; uses `fpga-rs-core` `rs-core-v1.0` (released; [shared blocks](#shared-blocks)) |
 | E | Sign-sign LMS adaptation firmware on the [RV32I core](https://github.com/RodeanAzari/riscv-rv32i-tmr-core) | Not started |
 | F | MLSE, live dashboard, portfolio | Not started |
@@ -212,6 +212,13 @@ counters) runs on the Arty at 1 Gb/s, controlled over UDP by `scripts/ber_run.py
 ([ADR 0012](docs/decisions/0012-ber-board-run-control.md)). A run stops after exactly R bits,
 so a short board run is compared with the bit-exact model count for count; long runs give the
 waterfall below. Points below ~10⁻⁷ are board-only: the software model would need ~8 h each.
+
+An on-chip logic analyzer (ILA) on the FFE output captures 16384 consecutive equalized samples
+from the running link; every one equals the bit-exact model's sample for the same seeds
+([`ffe_capture_kr_ch4_31p4db_24db.csv`](data/results/ffe_capture_kr_ch4_31p4db_24db.csv)).
+After the DFE feedback the slicer sees four separated levels:
+
+[![ILA capture of the FFE output](docs/media/2026-11-11_phase-c_ila-ffe-eye.png)](docs/media/2026-11-11_phase-c_ila-ffe-eye.png)
 
 [![Hardware BER vs bit-exact model](docs/media/2026-11-11_phase-c_ber-hw-vs-model.png)](docs/media/2026-11-11_phase-c_ber-hw-vs-model.png)
 

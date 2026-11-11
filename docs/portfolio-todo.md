@@ -13,4 +13,5 @@
 | Terminal capture: `ber_run.py exact` printing PASS (board counts = model counts) | C | Screenshot | Pending: user |
 | Terminal capture: `ber_run.py sweep` printing the 7-point waterfall, 10 s per point | C | Screenshot | Pending: user |
 | Photo: Arty running `ber_top` (LD4 heartbeat, LD5 run LED during a sweep, Ethernet LEDs) | C | Photo | Pending: user |
-| ILA capture of the FFE output z (eye before the slicer) | C | Screenshot | Pending: not built yet |
+| ILA capture of the FFE output: 16384 samples, slicer input v and z histograms (equal to the model) | C | Plot | Done: `docs/media/2026-11-11_phase-c_ila-ffe-eye.png` |
+| Optional: Vivado Hardware Manager waveform of the same ILA (ber_top.ltx) | C | Screenshot | Pending: user |

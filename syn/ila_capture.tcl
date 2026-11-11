@@ -26,7 +26,6 @@ set trig [get_hw_probes -of_objects $ila -filter {NAME =~ *z_valid_dbg*}]
 if {[llength $trig] != 1} { error "trigger probe z_valid_dbg not found" }
 set_property CONTROL.DATA_DEPTH 4096 $ila
 set_property CONTROL.TRIGGER_POSITION 0 $ila
-set_property CONTROL.TRIGGER_MODE BASIC_ONLY $ila
 set_property TRIGGER_COMPARE_VALUE eq1'bR $trig
 run_hw_ila $ila
 puts "ILA_ARMED"

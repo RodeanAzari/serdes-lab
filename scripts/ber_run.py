@@ -23,6 +23,7 @@ import argparse
 import csv
 import datetime as dt
 import math
+import re
 import socket
 import subprocess
 import sys
@@ -333,18 +334,26 @@ ILA_WORDS, Z_W = 4096, 10
 
 
 def read_ila_csv(path: Path) -> tuple[np.ndarray, np.ndarray]:
-    """Vivado write_hw_ila_data CSV -> (z words as (rows, P) signed, valid per row)."""
+    """Vivado write_hw_ila_data CSV -> (z words as (rows, P) signed, valid per row).
+    Vivado names one column per probed net slice, e.g. `u_core/u_link/z_dbg[2]_1_4[3:3]` =
+    symbol 2, bits 3..3 (hex values); columns are decoded by name, never by position."""
     rows = list(csv.reader(path.open()))
     head = rows[0]
     data = [r for r in rows[1:] if r and not r[0].startswith("Radix")]
-    zc = [i for i, h in enumerate(head) if "z_dbg" in h]
-    vc = [i for i, h in enumerate(head) if "z_valid_dbg" in h]
-    if len(zc) != 1 or len(vc) != 1:
-        raise RuntimeError(f"ILA CSV columns not found in {head}")
-    w = [int(r[zc[0]], 16) for r in data]
-    z = np.array([[(x >> (Z_W * p)) & ((1 << Z_W) - 1) for p in range(P)] for x in w])
+    z = np.zeros((len(data), P), dtype=np.int64)
+    seen = np.zeros((P, Z_W), dtype=np.int64)
+    vc = [i for i, h in enumerate(head) if h.endswith("z_valid_dbg")]
+    for i, h in enumerate(head):
+        m = re.search(r"z_dbg\[(\d+)\][^\[]*\[(\d+):(\d+)\]$", h)
+        if not m:
+            continue
+        p, hi, lo = int(m[1]), int(m[2]), int(m[3])
+        z[:, p] |= np.array([int(r[i], 16) for r in data], dtype=np.int64) << lo
+        seen[p, lo : hi + 1] += 1
+    if len(vc) != 1 or not (seen == 1).all():
+        raise RuntimeError(f"ILA CSV: z bits not covered exactly once, or no valid column: {head}")
     z = np.where(z >= 1 << (Z_W - 1), z - (1 << Z_W), z)
-    return z.astype(np.int64), np.array([int(r[vc[0]], 16) for r in data])
+    return z, np.array([int(r[vc[0]], 16) for r in data])
 
 
 def capture(bd: Board, a: argparse.Namespace) -> int:
@@ -361,7 +370,7 @@ def capture(bd: Board, a: argparse.Namespace) -> int:
     proc = subprocess.Popen([str(ROOT / "scripts/vivado.sh"), "-mode", "batch", "-nojournal",
                              "-nolog", "-source", str(ROOT / "syn/ila_capture.tcl"), "-tclargs",
                              str(ltx), str(raw)], cwd=ROOT / "syn/build", stdout=subprocess.PIPE,
-                            text=True)  # fmt: skip
+                            stderr=subprocess.STDOUT, text=True)  # fmt: skip
     assert proc.stdout is not None
     started = False
     for line in proc.stdout:

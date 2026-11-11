@@ -64,16 +64,19 @@ if {$top eq "ber_top"} {
 # ILA on the FFE output (Phase C eye capture; capture: syn/ila_capture.tcl via ber_run.py).
 # probe0 = z_dbg (P x 10 b, symbol 0 in the low bits), probe1 = z_valid_dbg (trigger).
 if {$top eq "ber_top"} {
-    proc flat_index {n} {  ;# z_dbg[k] or z_dbg[p][b] -> flat bit index (Z_W = 10)
-        if {[regexp {\[(\d+)\]\[(\d+)\]$} $n -> a b]} { return [expr {$a * 10 + $b}] }
-        if {[regexp {\[(\d+)\]$} $n -> a]} { return $a }
+    proc flat_index {n} {  ;# synthesized names: z_dbg[p]_<k>[b] (symbol p, bit b), Z_W = 10
+        if {[regexp {z_dbg\[(\d+)\][^\[]*\[(\d+)\]$} $n -> p b]} { return [expr {$p * 10 + $b}] }
         error "ILA: cannot index net $n"
     }
     set z {}
     foreach n [get_nets -quiet -hier -filter {MARK_DEBUG == 1 && NAME =~ *z_dbg*}] {
         lappend z [list [flat_index $n] $n]
     }
-    set z [lmap e [lsort -integer -index 0 $z] {lindex $e 1}]
+    set z [lsort -integer -index 0 $z]
+    if {[llength [lsort -unique [lmap e $z {lindex $e 0}]]] != 40} {
+        error "ILA: z_dbg bit indices are not 0..39 exactly once"
+    }
+    set z [lmap e $z {lindex $e 1}]
     set v [get_nets -quiet -hier -filter {MARK_DEBUG == 1 && NAME =~ *z_valid_dbg*}]
     if {[llength $z] != 40 || [llength $v] != 1} {
         error "ILA: expected 40 z_dbg nets and 1 z_valid_dbg, got [llength $z] and [llength $v]"

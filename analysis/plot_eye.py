@@ -64,7 +64,8 @@ def main() -> None:
     hx.hist(v, bins=bins, orientation="horizontal", color=HW, alpha=0.7, label="v (after DFE)")
     hx.set_xscale("log")
     hx.set_xlabel("Symbols per bin", color=MUTED)
-    hx.legend(frameon=False, fontsize=8, labelcolor=INK, loc="upper right")
+    hx.legend(frameon=False, fontsize=8, labelcolor=INK, loc="lower center",
+              bbox_to_anchor=(0.5, 1.0), ncol=1)
     fig.text(0.01, 0.01, "Dashed: slicer thresholds −t2, 0, +t2. Every captured sample equals "
              "the bit-exact model's z for the same seeds.", color=MUTED, fontsize=8)  # fmt: skip
     fig.tight_layout(rect=(0, 0.03, 1, 1))
