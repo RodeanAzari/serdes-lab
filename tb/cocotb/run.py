@@ -47,6 +47,9 @@ TESTS: dict[str, tuple[str, list[str], list[dict[str, int]]]] = {
     "test_dfe_slicer": ("dfe_slicer", ["rtl/rx/dfe_slicer.sv"],
                         [{"P": 4}, {"P": 4, "D_INIT": 3}, {"P": 3, "D_INIT": 1}, {"P": 1}]),
     "test_demap": ("demap", ["rtl/rx/demap.sv"], [{"P": 4}, {"P": 1}]),
+    "test_ber_check": ("ber_check", ["rtl/stats/ber_check.sv"],
+                       [{"P": 4}, {"P": 2}, {"P": 1}, {"P": 4, "CNT_W": 6},
+                        {"P": 4, "DEPTH": 8}]),  # fmt: skip
 }
 
 # extra Verilator build arguments per test module (string parameters stay out of the run tag)

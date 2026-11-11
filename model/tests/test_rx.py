@@ -77,3 +77,33 @@ def test_wrong_start_state_costs_only_a_short_burst() -> None:
     for d0 in range(4):
         out = rx.rx(tx.front_end(y, CFG)[v], regs, CFG, True, d_init=d0, p_init=(d0 + 1) % 4)
         assert np.array_equal(out.gray[8:], want[8 : len(out.gray)])
+
+
+def test_start_on_a_word_boundary_continues_the_same_stream() -> None:
+    """start = 16 (the RTL's first word boundary at N = 16, P = 4) with d_init = the decision
+    at 15 is the default stream minus its first symbol; start < N - 1 is refused."""
+    hq, cur, regs = channel("kr_ch4_31p4db")
+    t = tx.tx(1, SEED, True)
+    y = tx.pre_adc(t.a, hq, cur, prng.lane_seeds(7, 4), noise.build_tables(noise.NoiseCfg()), 0)
+    x = tx.front_end(y, CFG)[tx.valid(len(t.a), len(hq), cur)]
+    ref = rx.rx(x, regs, CFG, True, d_init=1, p_init=2)
+    d15 = int(ref.idx[0])
+    out = rx.rx(x, regs, CFG, True, d_init=d15, p_init=d15, start=N)
+    for a, b in ((out.z, ref.z), (out.idx, ref.idx), (out.gray, ref.gray)):
+        assert np.array_equal(a, b[1:])
+    with pytest.raises(ValueError):
+        rx.rx(x, regs, CFG, True, start=N - 2)
+
+
+def test_count_errors_against_hand_counts() -> None:
+    """Gray bits G = {A, A ^ B}: 0 = 00, 1 = 01, 2 = 11, 3 = 10. 2 vs 0 and 1 vs 3 flip both
+    bits, 1 vs 0 one. Holdoff and RX symbols past the TX stream end are excluded."""
+    tx_g = np.array([3, 3, 0, 1, 2, 3, 0, 0, 1])  # first = 2: rx[j] vs tx[2 + j], j <= 6
+    rx_g = np.array([1, 1, 2, 1, 2, 2, 1, 0, 1, 1])
+    got = rx.count_errors(rx_g, tx_g, first=2, skip=1)
+    # (rx, tx) for j = 1..6: (1,1) (2,2) (1,3) (2,0) (2,0) (1,1)
+    assert got == rx.ErrCount(bits=12, bit_errors=2 + 2 + 2, sym_errors=3)
+    assert rx.count_errors(rx_g, tx_g, first=2, skip=0) == rx.ErrCount(14, 7, 4)  # + (1,0)
+    assert rx.count_errors(rx_g, tx_g, first=20, skip=0) == rx.ErrCount(0, 0, 0)
+    with pytest.raises(ValueError):
+        rx.count_errors(rx_g, tx_g, first=-1, skip=0)
