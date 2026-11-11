@@ -36,7 +36,7 @@ exactly these taps, scaled to integers.*
 | **Equalizer (planned)** | 16-tap FFE + 1-tap DFE, 4-state MLSE in Phase F; P = 4 symbols per clock, 2 instances ([ADR 0002](docs/decisions/0002-parallelism-and-taps.md)) |
 | **Fixed point** | 7-bit ADC at 3.0 × signal rms, 10-bit coefficients and output: **0.60 dB** penalty on the 31.4 dB channel at BER 10⁻¹² (MSE estimate), 0.17 dB at 2.4 × 10⁻⁴ ([`fixed_point_sweep.csv`](data/results/fixed_point_sweep.csv)) |
 | **Noise generator** | Segmented inverse CDF, reach 9.155σ; tail probability within **4.5 × 10⁻⁵** (relative) of a Gaussian out to 8σ, computed exactly over all 2⁶³ inputs ([`noise_sweep.csv`](data/results/noise_sweep.csv)) |
-| **Noise on hardware** | 8 lanes at 125 MHz: histograms equal the bit-exact model **bin for bin** (0 of 8192 bins differ, 2²² words per lane, 2 seeds) ([`noise_hist_exact.csv`](data/results/noise_hist_exact.csv), [`noise_hist_exact_seed7340033.csv`](data/results/noise_hist_exact_seed7340033.csv)). Tails to ±7σ from the long run: [TBD] |
+| **Noise on hardware** | 8 lanes at 125 MHz: histograms equal the bit-exact model **bin for bin** (0 of 8192 bins differ, 2²² words per lane, 2 seeds) ([`noise_hist_exact.csv`](data/results/noise_hist_exact.csv), [`noise_hist_exact_seed7340033.csv`](data/results/noise_hist_exact_seed7340033.csv)). Tails: **7.2 × 10¹² samples, 27/27 chi-square and symmetry tests pass** (α = 10⁻³ each); 19 samples beyond 7σ, model 19.4, 95% CI 11.4–29.7 ([`noise_hist_stats.csv`](data/results/noise_hist_stats.csv), [`noise_hist_tails.csv`](data/results/noise_hist_tails.csv)) |
 | **Model cross-check** | BER agrees with serdespy at 8 of 8 points (\|z\| ≤ 1.63); identical error counts in 80 of 80 paired chunks ([`serdespy_ber.csv`](data/results/serdespy_ber.csv), [`serdespy_paired.csv`](data/results/serdespy_paired.csv)) |
 | **KP4 model** | Encoder and decoder agree with the independent `galois` library for 0…15 errors and beyond t ([`model/tests/test_rs.py`](model/tests/test_rs.py)) |
 | **DSP budget** | ~168 / 240 DSP48E1 (planning estimate; [TBD] after synthesis) |
@@ -53,8 +53,8 @@ exactly these taps, scaled to integers.*
 | Phase | Scope | State |
 |---|---|---|
 | A | Python golden model, channel conversion, sizing | **Done** (2026-11-07, tag `v0.1-model`) |
-| B | TX, channel FIR, noise generator, ADC in RTL | Not started |
-| C | RX FFE, DFE, slicer with fixed taps; first hardware BER | Not started |
+| B | TX, channel FIR, noise generator, ADC in RTL | RTL bit-exact; noise validated on hardware to 7σ; captures pending |
+| C | RX FFE, DFE, slicer with fixed taps; first hardware BER | In progress: FFE, DFE, demap RTL |
 | D | KP4 decode on the FPGA + error statistics | Not started; uses `fpga-rs-core` `rs-core-v1.0` (released; [shared blocks](#shared-blocks)) |
 | E | Sign-sign LMS adaptation firmware on the [RV32I core](https://github.com/RodeanAzari/riscv-rv32i-tmr-core) | Not started |
 | F | MLSE, live dashboard, portfolio | Not started |
@@ -166,6 +166,11 @@ one input, so the model computes the output distribution **exactly**, with no sa
 | Method | Inverse CDF, 1024 segments | Box–Muller (no exact tail check), Ziggurat (variable latency), Wallace (correlated outputs), sum of uniforms (no tails) |
 | Hardware check | Histogram vs. exact model pmf; Gaussian chi-square beyond 4σ | Full-range Gaussian chi-square at 4 × 10¹³: fails even with bug-free RTL |
 
+![Hardware noise histogram, 7.2e12 samples, vs. the exact model and the Gaussian](docs/media/2026-11-11_phase-b_noise-histogram.png)
+
+The hardware run was planned at 4 × 10¹³ samples and stopped at 7.2 × 10¹² when the host lost
+its link to the board; ±7σ is tested, with ~19 tail samples instead of ~100.
+
 Details: [ADR 0003](docs/decisions/0003-noise-generator.md), [ADR 0005](docs/decisions/0005-noise-formats-and-validation.md).
 
 ## Equalizer, KP4 and statistics
@@ -199,7 +204,9 @@ of the FPGA (Phase D). Adaptation firmware: [TBD] (Phase E).
 
 ## On the board, demos, in Vivado
 
-[TBD]. Nothing runs on hardware yet.
+The noise generator runs on the Arty: 8 lanes at 125 MHz into per-lane histograms in BRAM, read
+over UDP by `scripts/noise_hist_run.py` ([ADR 0009](docs/decisions/0009-hardware-noise-histogram.md)).
+BER on hardware: [TBD] (Phase C).
 
 ## Results
 
