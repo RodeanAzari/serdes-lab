@@ -19,4 +19,5 @@ results.xml
 # Local session notes for Claude Code: kept on disk, not published
 CLAUDE.md
 progress.md
-data/results/*.state.json  # noise_hist_run.py resume state (transient)
+# noise_hist_run.py resume state (transient)
+data/results/*.state.json

@@ -41,6 +41,10 @@ Python model against the 1% tail target, and recorded in `docs/fixed-point.md`.
    (80 beyond 6.5σ), so they verify only to ~6.5σ; 4×10¹³ gives ~100 beyond 7σ. All 8 lanes
    must feed the histogram (one per lane, or tail-event capture): one lane alone would take
    ~89 h. Hardware confirms the RTL and the uniform source; the model check covers the tail.
+   **Outcome (2026-11-11):** the run stopped at 7.2×10¹² samples (18%) when the host lost the
+   board's USB NIC overnight; the user accepted the partial data. 27/27 tests pass, and 19
+   samples beyond 7σ were seen (95% CI 11.4–29.7, model 19.4): the 7σ bin is tested, with
+   ~5× less statistical power than planned ([csv](../../data/results/noise_hist_tails.csv)).
 4. Lag-1…16 autocorrelation and cross-lane correlation of the generated samples (FFE sums
    16 lags, so correlation there would bias BER).
 

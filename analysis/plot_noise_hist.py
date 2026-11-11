@@ -94,7 +94,9 @@ def main() -> None:
     rx.set_ylabel("(hw − model) / √model", color=MUTED)
     rx.set_xlabel("Noise sample n / σ", color=MUTED)
     rx.set_xlim(-T_MAX, T_MAX)
-    fig.suptitle(f"Hardware Gaussian noise generator: {total:.2e} samples vs. model and Gaussian",
+    exp = int(np.floor(np.log10(total)))
+    count = f"{total / 10**exp:.1f} × 10$^{{{exp}}}$"
+    fig.suptitle(f"Hardware Gaussian noise generator: {count} samples vs. model and Gaussian",
                  color=INK, fontsize=12, x=0.01, ha="left")  # fmt: skip
     fig.tight_layout()
     OUT.parent.mkdir(parents=True, exist_ok=True)
