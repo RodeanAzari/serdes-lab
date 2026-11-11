@@ -97,8 +97,10 @@ async def test_noiseless_link_is_error_free(dut) -> None:  # type: ignore[no-unt
     cocotb.start_soon(Clock(dut.clk_i, 8, unit="ns").start())
     for name in ("kr_ch4_31p4db", "kr_ch2_19p3db"):
         for pre in (False, True):
-            c = await run(dut, rng, name, pre, 0, 2, 2)
-            # 2 codewords = 10880 TX bits, less the warm-up and the model's end edge
+            # holdoff 16 words: the DFE start-up burst from the d_init guess reaches 10 symbols
+            # without noise (seen: P = 2, Ch4, precoded, SEED=3946702219); 2 words was too short
+            c = await run(dut, rng, name, pre, 0, 16, 2)
+            # 2 codewords = 10880 TX bits, less the warm-up, the holdoff and the model's end edge
             assert c.bit_errors == 0 and c.sym_errors == 0 and c.bits > 10000, c
 
 

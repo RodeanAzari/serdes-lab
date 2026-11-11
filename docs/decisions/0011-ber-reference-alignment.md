@@ -48,3 +48,11 @@ FIFO overflow or underflow sets a sticky error flag; the host rejects a run that
   64-word FIFO.
 - **PRBS checker on the decoded payload:** needs RS alignment and decoding, which is Phase D;
   pre-FEC BER must not depend on it.
+
+## Note 2026-11-11: start-up burst longer than stated
+
+"≤ 4 symbols on Ch4" above is wrong in general. With no noise, a wrong d_init guess gave a
+**10-symbol** DFE burst (P = 2, Ch4, precoded; the precoder inverse turned it into one Gray
+error at its end, symbol 10). The model shows the same burst, so counts stayed bit-exact; only
+`test_link_core`'s zero-error claim with holdoff 2 words failed. Holdoff is now 16 words in that
+test and 64 words (256 symbols) on the board (`scripts/ber_run.py`), negligible run time.
