@@ -9,3 +9,8 @@
 | Hardware noise histogram vs Gaussian ±7σ, 7.2 × 10¹² samples (log scale, residuals) | B | Plot | Done: `docs/media/2026-11-11_phase-b_noise-histogram.png` |
 | Photo: Arty running the noise histogram (LD4 heartbeat, LD6 run LED, Ethernet link LEDs) | B | Photo | Pending: user |
 | Terminal capture: `noise_hist_run.py exact` printing PASS, 0 of 8192 bins differ | B | Screenshot | Pending: user |
+| Hardware BER vs bit-exact model, Ch4 and Ch2 precoded, 10¹⁰ bits per point down to 2.5 × 10⁻⁸ | C | Plot | Done: `docs/media/2026-11-11_phase-c_ber-hw-vs-model.png` |
+| Terminal capture: `ber_run.py exact` printing PASS (board counts = model counts) | C | Screenshot | Pending: user |
+| Terminal capture: `ber_run.py sweep` printing the 7-point waterfall, 10 s per point | C | Screenshot | Pending: user |
+| Photo: Arty running `ber_top` (LD4 heartbeat, LD5 run LED during a sweep, Ethernet LEDs) | C | Photo | Pending: user |
+| ILA capture of the FFE output z (eye before the slicer) | C | Screenshot | Pending: not built yet |

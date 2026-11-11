@@ -44,6 +44,7 @@ plots:
 	$(PY) analysis/plot_xcheck.py
 	$(PY) analysis/plot_kp4.py
 	$(PY) analysis/plot_noise_hist.py  # needs `make noise-stats` (after the hardware run)
+	$(PY) analysis/plot_ber_hw.py  # needs scripts/ber_run.py sweep + model
 
 sim:  # cocotb + Verilator, bit-exact vs model/ (tb/cocotb/run.py lists modules and parameters)
 	$(PY) tb/cocotb/run.py

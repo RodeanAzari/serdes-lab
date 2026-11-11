@@ -338,3 +338,39 @@ would also have failed on it.
 - Mutation: 16/16 (dfe_slicer, demap), 13/13 (ber_check), 4/4 (link wiring).
 - Next: board top for the BER campaign (run control, counter readout over UDP), full-design
   synthesis (DSP count, timing), then hardware BER vs model at 1e-3…1e-6.
+
+## 2026-11-11 (afternoon): BER board, first hardware BER curves = model
+
+- **ADR 0012 / `link_ctrl`, `ber_core`, `ber_top`** (5ed0b03): UDP control of `link_core` on
+  port 26401 (docs/registers.md). Link held in reset when idle; run length R in bits with an
+  exact stop (snapshot counters copied on one edge, frozen when live bits == R). CONFIG
+  (249 B) validates every field before applying it. `link_core`/`ber_check` unchanged.
+- Sim (`test_ber_core`, P 4 and 2): counts == model over exactly R bits; every mid-run STATUS ==
+  model over its own bit count (40–84 per run); STOP/repeat; every CONFIG check at its limit;
+  the host script's CONFIG packing + model reference vs RTL. Bug injection 15/15 (the first
+  pass missed "PRBS seed bit 31 unchecked": the test's 1 << 31 case was also caught by the
+  nonzero check; added (1 << 31) | 1).
+- ber_core first sim: PRBS a_nonzero fired at t = 0 because link_ctrl's reset register is 0
+  until rst_i's first edge (same at power-up on hardware). Link reset = rst_i || link_rst.
+- **Test bug found by a random seed:** `test_link_core` noiseless, P = 2, Ch4 precoded,
+  SEED=3946702219: 1 error after a 2-word holdoff. The model gives the same count: a wrong
+  d_init makes a 10-symbol DFE burst with no noise; the precoder inverse leaves one Gray error
+  at its end. Holdoff 16 words in the test, 64 on the board; ADR 0011 note (was "≤ 4 symbols").
+- `make impl TOP=ber_top` (5ed0b033): **WNS +0.360 ns, WHS +0.028 ns** @ 125 MHz; 8155 LUT,
+  10575 FF, 7 BRAM tiles, 76 DSP (FFE 64, checked by build_board.tcl; noise 12); 0 critical
+  warnings, 0 latches. link_ctrl 2129 LUT / 3772 FF (mostly the CONFIG shift register).
+  Reports: docs/reports/ber_top-5ed0b033/.
+- Board: static neighbour for 192.168.10.2 was gone (INCOMPLETE); user restored it with sudo.
+- **`exact` PASS on both channels**: Ch4 21 dB 5149 = 5149 bit errors over 1,087,424 bits;
+  Ch2 precoded 17 dB 4002 = 4002.
+- **Sweeps, 10¹⁰ bits per point, 10 s each**: Ch4 21–27 dB 4.8e-3 … 5.9e-8 (587 errors);
+  Ch2 precoded 17–23 dB 3.6e-3 … 2.5e-8 (252 errors).
+- Model at the same points, independent seeds: first pass (~300 errors, Clopper-Pearson) put 3
+  of 11 board points outside the model CI (highest BER on each channel −12…−16%, Ch4 24 dB
+  +42%). Not a hardware difference (same-seed counts are exact): too few errors, and errors
+  are bursty (DFE propagation, precoder pairs) so the binomial CI is too narrow. Rerun with
+  ~3000 errors in ≥ 20 independent chunks and a batch-means CI (checked: equals CP for
+  independent errors, wider for pairs, 93.5% coverage in 400 trials): **11/11 inside**.
+  Points below ~1e-7 are board-only (the model needs ~8 h per point at 7e4 b/s).
+- Open: `make sim` now 7 min 9 s (budget 5): move the P = 2 link/ber_core runs to sim-full.
+  Board CIs are still Clopper-Pearson (optimistic at the low-count points by the burst factor).

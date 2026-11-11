@@ -39,13 +39,14 @@ exactly these taps, scaled to integers.*
 | **Noise on hardware** | 8 lanes at 125 MHz: histograms equal the bit-exact model **bin for bin** (0 of 8192 bins differ, 2²² words per lane, 2 seeds) ([`noise_hist_exact.csv`](data/results/noise_hist_exact.csv), [`noise_hist_exact_seed7340033.csv`](data/results/noise_hist_exact_seed7340033.csv)). Tails: **7.2 × 10¹² samples, 27/27 chi-square and symmetry tests pass** (α = 10⁻³ each); 19 samples beyond 7σ, model 19.4, 95% CI 11.4–29.7 ([`noise_hist_stats.csv`](data/results/noise_hist_stats.csv), [`noise_hist_tails.csv`](data/results/noise_hist_tails.csv)) |
 | **Model cross-check** | BER agrees with serdespy at 8 of 8 points (\|z\| ≤ 1.63); identical error counts in 80 of 80 paired chunks ([`serdespy_ber.csv`](data/results/serdespy_ber.csv), [`serdespy_paired.csv`](data/results/serdespy_paired.csv)) |
 | **KP4 model** | Encoder and decoder agree with the independent `galois` library for 0…15 errors and beyond t ([`model/tests/test_rs.py`](model/tests/test_rs.py)) |
-| **DSP budget** | ~168 / 240 DSP48E1 (planning estimate; [TBD] after synthesis) |
-| **Emulation speed** | [TBD] (planning: 0.5 G symbols/s per instance at 125 MHz) |
-| **Lowest BER / CER measured** | [TBD] (hardware). Model: 4.15 × 10⁻⁶ on the 19.3 dB channel at 21 dB SNR, 216 errors ([`model_ber_float.csv`](data/results/model_ber_float.csv)) |
+| **DSP budget** | Measured, one link instance: **76 / 240 DSP48E1** (FFE 64, noise 12) ([report](docs/reports/ber_top-5ed0b033/utilization_hier.rpt)); planning estimate for 2 instances ~168 |
+| **Emulation speed** | **1 Gb/s** per instance (P = 4 symbols × 125 MHz): 10¹⁰ bits per point in 10 s ([`ber_hw_kr_ch4_31p4db.csv`](data/results/ber_hw_kr_ch4_31p4db.csv)); the software model runs ~7 × 10⁴ b/s |
+| **Hardware BER vs. model** | Same seeds: board error counts **equal** the bit-exact model (5149 = 5149 errors over 1,087,424 bits on Ch4; 4002 = 4002 on Ch2 precoded) ([`ber_exact_kr_ch4_31p4db.csv`](data/results/ber_exact_kr_ch4_31p4db.csv), [`ber_exact_kr_ch2_19p3db_pre.csv`](data/results/ber_exact_kr_ch2_19p3db_pre.csv)). Independent seeds: **11 of 11** board points inside the model's 95% batch-means CI, 10⁻³ to 10⁻⁶ ([`ber_model_kr_ch4_31p4db.csv`](data/results/ber_model_kr_ch4_31p4db.csv), [`ber_model_kr_ch2_19p3db_pre.csv`](data/results/ber_model_kr_ch2_19p3db_pre.csv)) |
+| **Lowest BER / CER measured** | Hardware pre-FEC BER **2.5 × 10⁻⁸** (252 errors in 10¹⁰ bits, 95% CI 2.2–2.9 × 10⁻⁸ assuming independent errors; 19.3 dB channel, precoder on, 23 dB SNR) ([`ber_hw_kr_ch2_19p3db_pre.csv`](data/results/ber_hw_kr_ch2_19p3db_pre.csv)). CER [TBD] (Phase D). Model: 4.15 × 10⁻⁶ on the 19.3 dB channel at 21 dB SNR, 216 errors ([`model_ber_float.csv`](data/results/model_ber_float.csv)) |
 | **Measured vs. predicted CER** | Hardware [TBD] (Phase D). Model, high BER: **2.1×** the independent-error prediction on the 31.4 dB channel at 21 dB (972 codeword errors in 10⁴), 1.22× with 2-way interleaving ([`kp4_model.csv`](data/results/kp4_model.csv)) |
 | **Adaptation** | [TBD] (Phase E) |
-| **Fmax / LUT / BRAM** | [TBD] |
-| **Tests** | 71 model tests (pytest, `mypy --strict`, ruff); RTL tests [TBD] |
+| **Fmax / LUT / BRAM** | BER board (`ber_top`, one link + UDP): 125 MHz met, WNS +0.360 ns; 8155 LUT, 10575 FF, 7 BRAM tiles ([summary](docs/reports/ber_top-5ed0b033/summary.txt), [utilization](docs/reports/ber_top-5ed0b033/utilization.rpt)) |
+| **Tests** | 119 model tests (pytest, `mypy --strict`, ruff); 16 cocotb RTL testbenches against the bit-exact model, with bug injection per block (`make ci`) |
 | **Bugs found** | 3, plus 2 analysis findings that changed the design (below) |
 
 ## Status
@@ -54,7 +55,7 @@ exactly these taps, scaled to integers.*
 |---|---|---|
 | A | Python golden model, channel conversion, sizing | **Done** (2026-11-07, tag `v0.1-model`) |
 | B | TX, channel FIR, noise generator, ADC in RTL | RTL bit-exact; noise validated on hardware to 7σ; captures pending |
-| C | RX FFE, DFE, slicer with fixed taps; first hardware BER | In progress: FFE, DFE, demap RTL |
+| C | RX FFE, DFE, slicer with fixed taps; first hardware BER | First hardware BER curves match the model (below); captures, ILA and tag pending |
 | D | KP4 decode on the FPGA + error statistics | Not started; uses `fpga-rs-core` `rs-core-v1.0` (released; [shared blocks](#shared-blocks)) |
 | E | Sign-sign LMS adaptation firmware on the [RV32I core](https://github.com/RodeanAzari/riscv-rv32i-tmr-core) | Not started |
 | F | MLSE, live dashboard, portfolio | Not started |
@@ -206,7 +207,13 @@ of the FPGA (Phase D). Adaptation firmware: [TBD] (Phase E).
 
 The noise generator runs on the Arty: 8 lanes at 125 MHz into per-lane histograms in BRAM, read
 over UDP by `scripts/noise_hist_run.py` ([ADR 0009](docs/decisions/0009-hardware-noise-histogram.md)).
-BER on hardware: [TBD] (Phase C).
+The full emulated link (`ber_top`: TX, channel FIR, noise, ADC, 16-tap FFE, 1-tap DFE, BER
+counters) runs on the Arty at 1 Gb/s, controlled over UDP by `scripts/ber_run.py`
+([ADR 0012](docs/decisions/0012-ber-board-run-control.md)). A run stops after exactly R bits,
+so a short board run is compared with the bit-exact model count for count; long runs give the
+waterfall below. Points below ~10⁻⁷ are board-only: the software model would need ~8 h each.
+
+[![Hardware BER vs bit-exact model](docs/media/2026-11-11_phase-c_ber-hw-vs-model.png)](docs/media/2026-11-11_phase-c_ber-hw-vs-model.png)
 
 ## Results
 
@@ -220,7 +227,9 @@ BER on hardware: [TBD] (Phase C).
 | Fixed/float BER ratio (real DFE), 31.4 dB channel | 1.22 → 1.81 over +0…2 dB | [`fixed_point_ber.csv`](data/results/fixed_point_ber.csv) |
 | Noise tail error to 8σ | 4.5 × 10⁻⁵ relative (exact) | [`noise_sweep.csv`](data/results/noise_sweep.csv) |
 | KP4 CER vs. independent prediction (model, 31.4 dB, 21 dB SNR) | 2.1× non-interleaved, 1.22× 2-way; precoder 9.7% → 12.9% | [`kp4_model.csv`](data/results/kp4_model.csv) |
-| Hardware BER, CER, speed, utilization | [TBD] | |
+| Hardware BER, same seeds as the model | identical counts (Ch4; Ch2 precoded), ~10⁶ bits each | [`ber_exact_kr_ch4_31p4db.csv`](data/results/ber_exact_kr_ch4_31p4db.csv), [`ber_exact_kr_ch2_19p3db_pre.csv`](data/results/ber_exact_kr_ch2_19p3db_pre.csv) |
+| Hardware BER waterfall, 10¹⁰ bits per point | Ch4 4.8 × 10⁻³ … 5.9 × 10⁻⁸ (587 errors); Ch2 precoded 3.6 × 10⁻³ … 2.5 × 10⁻⁸ (252 errors); 11/11 points with a model run inside its 95% batch CI | [`ber_hw_kr_ch4_31p4db.csv`](data/results/ber_hw_kr_ch4_31p4db.csv), [`ber_hw_kr_ch2_19p3db_pre.csv`](data/results/ber_hw_kr_ch2_19p3db_pre.csv) |
+| Hardware CER | [TBD] (Phase D) | |
 
 ## Limitations
 

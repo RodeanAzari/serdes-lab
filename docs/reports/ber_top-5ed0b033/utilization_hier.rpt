@@ -1,0 +1,60 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date         : Wed Nov 11 10:51:39 2026
+| Host         : RodeanStation running 64-bit Ubuntu 26.04 LTS
+| Command      : report_utilization -hierarchical -file /home/rodea/serdes-lab/syn/build/ber_top/utilization_hier.rpt
+| Design       : ber_top
+| Device       : xc7a100tcsg324-1
+| Speed File   : -1
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++----------------------------+----------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+|          Instance          |           Module           | Total LUTs | Logic LUTs | LUTRAMs | SRLs |  FFs  | RAMB36 | RAMB18 | DSP Blocks |
++----------------------------+----------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+| ber_top                    |                      (top) |       8155 |       7961 |      12 |  182 | 10575 |      6 |      2 |         76 |
+|   (ber_top)                |                      (top) |          9 |          9 |       0 |    0 |   150 |      0 |      0 |          0 |
+|   u_core                   |                   ber_core |       7388 |       7214 |      12 |  162 |  9121 |      4 |      0 |         76 |
+|     u_ctrl                 |                  link_ctrl |       2129 |       2069 |       0 |   60 |  3772 |      0 |      0 |          0 |
+|     u_link                 |                  link_core |       5259 |       5145 |      12 |  102 |  5349 |      4 |      0 |         76 |
+|       u_ber                |                  ber_check |        180 |        168 |      12 |    0 |   244 |      0 |      0 |          0 |
+|       u_chan               |                channel_top |       3614 |       3513 |       0 |  101 |  4198 |      4 |      0 |         12 |
+|         (u_chan)           |                channel_top |        281 |        245 |       0 |   36 |   151 |      0 |      0 |          0 |
+|         g_unif[0].u_unif   |                    lfsr258 |        156 |        156 |       0 |    0 |   322 |      0 |      0 |          0 |
+|         g_unif[1].u_unif   |                  lfsr258_3 |        156 |        156 |       0 |    0 |   322 |      0 |      0 |          0 |
+|         g_unif[2].u_unif   |                  lfsr258_4 |        156 |        156 |       0 |    0 |   322 |      0 |      0 |          0 |
+|         g_unif[3].u_unif   |                  lfsr258_5 |        156 |        156 |       0 |    0 |   322 |      0 |      0 |          0 |
+|         u_fir              |                channel_fir |       1936 |       1936 |       0 |    0 |  1554 |      0 |      0 |          0 |
+|         u_noise            |                  noise_gen |        397 |        332 |       0 |   65 |   833 |      4 |      0 |         12 |
+|           g_lane[3].u_lane |               noise_lane_8 |         99 |         83 |       0 |   16 |   190 |      0 |      0 |          3 |
+|           g_lane[0].u_lane |                 noise_lane |        100 |         83 |       0 |   17 |   190 |      0 |      0 |          3 |
+|           g_lane[1].u_lane |               noise_lane_6 |         99 |         83 |       0 |   16 |   190 |      0 |      0 |          3 |
+|           g_lane[2].u_lane |               noise_lane_7 |         99 |         83 |       0 |   16 |   190 |      0 |      0 |          3 |
+|         u_tx               |                     tx_top |        380 |        380 |       0 |    0 |   372 |      0 |      0 |          0 |
+|           u_enc            |                     rs_enc |        311 |        311 |       0 |    0 |   310 |      0 |      0 |          0 |
+|       u_rx                 |                     rx_top |       1454 |       1453 |       0 |    1 |   897 |      0 |      0 |         64 |
+|         u_ffe              |                        ffe |       1166 |       1165 |       0 |    1 |   611 |      0 |      0 |         64 |
+|         u_dfe              |                 dfe_slicer |        277 |        277 |       0 |    0 |   271 |      0 |      0 |          0 |
+|   u_eth_rx                 |                     eth_rx |        197 |        193 |       0 |    4 |   259 |      2 |      0 |          0 |
+|     u_buf                  |               frame_buffer |         67 |         67 |       0 |    0 |    64 |      1 |      0 |          0 |
+|     u_fcs                  |              eth_fcs_check |         55 |         51 |       0 |    4 |    50 |      0 |      0 |          0 |
+|     u_fifo                 |                 async_fifo |         43 |         43 |       0 |    0 |   108 |      1 |      0 |          0 |
+|   u_eth_tx                 |                     eth_tx |        129 |        129 |       0 |    0 |   162 |      0 |      1 |          0 |
+|     u_fifo                 | async_fifo__parameterized0 |         42 |         42 |       0 |    0 |   108 |      0 |      1 |          0 |
+|     u_mii_tx               |                     mii_tx |         87 |         87 |       0 |    0 |    54 |      0 |      0 |          0 |
+|   u_udp_rx                 |                     udp_rx |        196 |        196 |       0 |    0 |   447 |      0 |      0 |          0 |
+|   u_udp_tx                 |                     udp_tx |        224 |        208 |       0 |   16 |   427 |      0 |      1 |          0 |
++----------------------------+----------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+* Note: The sum of lower-level cells may be larger than their parent cells total, due to cross-hierarchy LUT combining
+
+
