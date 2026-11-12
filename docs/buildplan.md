@@ -117,15 +117,15 @@ Every phase's DoD includes **README updated, `docs/log.md` entry, that phase's m
 - [x] Media: pulse-response plots per channel; model BER waterfall; serdespy overlay; model errors-per-codeword histogram (all user confirmed 2026-11-07). **Phase A done 2026-11-07, tag `v0.1-model`.**
 
 ### Phase B — TX + channel + noise
-- [ ] Model first: bit-exact payload PRBS and noise uniform source (`lfsr258`-type, ADR 0003), independent generators
-- [ ] RS encoder, Gray map, precoder, multiplierless channel FIR, noise generator, ADC; bit-exact vs. model
-- [ ] **Noise-tail validation on hardware** to ±7σ; plot and statistic committed
-- [ ] Media: noise histogram (log scale) vs. Gaussian
+- [x] Model first: bit-exact payload PRBS and noise uniform source (`lfsr258`-type, ADR 0003), independent generators
+- [x] RS encoder, Gray map, precoder, multiplierless channel FIR, noise generator, ADC; bit-exact vs. model
+- [x] **Noise-tail validation on hardware** to ±7σ; plot and statistic committed
+- [x] Media: noise histogram (log scale) vs. Gaussian (user confirmed captures 2026-11-11). **Phase B done 2026-11-11, tag `v0.2-channel`.**
 
 ### Phase C — RX equalization (fixed taps)
-- [ ] FFE + DFE + slicer with Python-computed taps
-- [ ] Hardware BER matches the model at 10⁻³–10⁻⁶ within confidence intervals
-- [ ] Media: BER vs. SNR, hardware over model; ILA capture of FFE output
+- [x] FFE + DFE + slicer with Python-computed taps
+- [x] Hardware BER matches the model at 10⁻³–10⁻⁶ within confidence intervals
+- [x] Media: BER vs. SNR, hardware over model; ILA capture of FFE output (user confirmed captures 2026-11-11). **Phase C done 2026-11-11, tag `v0.3-rx`.**
 
 ### Phase D — KP4 decode + statistics *(gate: `rs-core-v1.0`)*
 - [ ] Real RS(544,514) decoding in the loop; codeword-error histograms; burst histograms; post-FEC CER

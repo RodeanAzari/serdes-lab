@@ -54,8 +54,8 @@ exactly these taps, scaled to integers.*
 | Phase | Scope | State |
 |---|---|---|
 | A | Python golden model, channel conversion, sizing | **Done** (2026-11-07, tag `v0.1-model`) |
-| B | TX, channel FIR, noise generator, ADC in RTL | RTL bit-exact; noise validated on hardware to 7σ; captures pending |
-| C | RX FFE, DFE, slicer with fixed taps; first hardware BER | Hardware BER curves and ILA capture match the model (below); user captures and tag pending |
+| B | TX, channel FIR, noise generator, ADC in RTL | **Done** (2026-11-11, tag `v0.2-channel`) |
+| C | RX FFE, DFE, slicer with fixed taps; first hardware BER | **Done** (2026-11-11, tag `v0.3-rx`): hardware BER and ILA capture match the model |
 | D | KP4 decode on the FPGA + error statistics | Not started; uses `fpga-rs-core` `rs-core-v1.0` (released; [shared blocks](#shared-blocks)) |
 | E | Sign-sign LMS adaptation firmware on the [RV32I core](https://github.com/RodeanAzari/riscv-rv32i-tmr-core) | Not started |
 | F | MLSE, live dashboard, portfolio | Not started |

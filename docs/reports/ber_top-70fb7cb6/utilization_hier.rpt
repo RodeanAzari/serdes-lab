@@ -1,0 +1,95 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date         : Wed Nov 11 13:21:41 2026
+| Host         : RodeanStation running 64-bit Ubuntu 26.04 LTS
+| Command      : report_utilization -hierarchical -file /home/rodea/serdes-lab/syn/build/ber_top/utilization_hier.rpt
+| Design       : ber_top
+| Device       : xc7a100tcsg324-1
+| Speed File   : -1
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++-------------------------------------------------------------------------+------------------------------------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+|                                 Instance                                |                        Module                        | Total LUTs | Logic LUTs | LUTRAMs | SRLs |  FFs  | RAMB36 | RAMB18 | DSP Blocks |
++-------------------------------------------------------------------------+------------------------------------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+| ber_top                                                                 |                                                (top) |       8870 |       8552 |      36 |  282 | 12645 |     11 |      2 |         76 |
+|   (ber_top)                                                             |                                                (top) |          9 |          9 |       0 |    0 |   150 |      0 |      0 |          0 |
+|   dbg_hub                                                               |                                              dbg_hub |        449 |        425 |      24 |    0 |   741 |      0 |      0 |          0 |
+|     inst                                                                |                           dbg_hub_xsdbm_v3_0_5_xsdbm |        449 |        425 |      24 |    0 |   741 |      0 |      0 |          0 |
+|       BSCANID.u_xsdbm_id                                                |                        dbg_hub_xsdbm_v3_0_5_xsdbm_id |        449 |        425 |      24 |    0 |   741 |      0 |      0 |          0 |
+|         SWITCH_N_EXT_BSCAN.bscan_switch                                 |                    dbg_hub_xsdbm_v3_0_5_bscan_switch |        124 |        124 |       0 |    0 |   125 |      0 |      0 |          0 |
+|         CORE_XSDB.UUT_MASTER                                            |                       dbg_hub_xsdbm_v3_0_5_icon2xsdb |        273 |        249 |      24 |    0 |   554 |      0 |      0 |          0 |
+|           U_ICON_INTERFACE                                              |                              dbg_hub_xsdbm_v3_0_5_if |        163 |        139 |      24 |    0 |   450 |      0 |      0 |          0 |
+|             U_CMD6_WR                                                   |                           dbg_hub_xsdbm_v3_0_5_wrreg |         46 |         34 |      12 |    0 |   110 |      0 |      0 |          0 |
+|               U_WR_FIFO                                                 |                          dbg_hub_xsdbm_v3_0_5_wrfifo |         44 |         32 |      12 |    0 |    90 |      0 |      0 |          0 |
+|                 SUBCORE_FIFO.xsdbm_v3_0_5_wrfifo_inst                   |                       dbg_hub_fifo_generator_v13_1_5 |         42 |         30 |      12 |    0 |    90 |      0 |      0 |          0 |
+|                   inst_fifo_gen                                         |                 dbg_hub_fifo_generator_v13_1_5_synth |         42 |         30 |      12 |    0 |    90 |      0 |      0 |          0 |
+|                     gconvfifo.rf                                        |                           dbg_hub_fifo_generator_top |         42 |         30 |      12 |    0 |    90 |      0 |      0 |          0 |
+|                       grf.rf                                            |                       dbg_hub_fifo_generator_ramfifo |         42 |         30 |      12 |    0 |    90 |      0 |      0 |          0 |
+|             U_CMD4                                                      |         dbg_hub_xsdbm_v3_0_5_ctl_reg__parameterized0 |          9 |          9 |       0 |    0 |    62 |      0 |      0 |          0 |
+|             U_CMD6_RD                                                   |                           dbg_hub_xsdbm_v3_0_5_rdreg |         67 |         55 |      12 |    0 |   134 |      0 |      0 |          0 |
+|               U_RD_FIFO                                                 |                          dbg_hub_xsdbm_v3_0_5_rdfifo |         65 |         53 |      12 |    0 |   114 |      0 |      0 |          0 |
+|                 SUBCORE_FIFO.xsdbm_v3_0_5_rdfifo_inst                   |       dbg_hub_fifo_generator_v13_1_5__parameterized0 |         47 |         35 |      12 |    0 |   114 |      0 |      0 |          0 |
+|                   inst_fifo_gen                                         | dbg_hub_fifo_generator_v13_1_5_synth__parameterized0 |         47 |         35 |      12 |    0 |   114 |      0 |      0 |          0 |
+|                     gconvfifo.rf                                        |           dbg_hub_fifo_generator_top__parameterized0 |         47 |         35 |      12 |    0 |   114 |      0 |      0 |          0 |
+|                       grf.rf                                            |       dbg_hub_fifo_generator_ramfifo__parameterized0 |         47 |         35 |      12 |    0 |   114 |      0 |      0 |          0 |
+|           U_XSDB_BUS_CONTROLLER                                         |                         dbg_hub_xsdbm_v3_0_5_bus_ctl |         70 |         70 |       0 |    0 |    48 |      0 |      0 |          0 |
+|   u_core                                                                |                                             ber_core |       6975 |       6803 |      12 |  160 |  9146 |      4 |      0 |         76 |
+|     u_ctrl                                                              |                                            link_ctrl |       1699 |       1639 |       0 |   60 |  3796 |      0 |      0 |          0 |
+|     u_link                                                              |                                            link_core |       5276 |       5164 |      12 |  100 |  5350 |      4 |      0 |         76 |
+|       u_ber                                                             |                                            ber_check |        177 |        165 |      12 |    0 |   244 |      0 |      0 |          0 |
+|       u_chan                                                            |                                          channel_top |       3609 |       3509 |       0 |  100 |  4194 |      4 |      0 |         12 |
+|         (u_chan)                                                        |                                          channel_top |        277 |        241 |       0 |   36 |   147 |      0 |      0 |          0 |
+|         g_unif[0].u_unif                                                |                                              lfsr258 |        156 |        156 |       0 |    0 |   322 |      0 |      0 |          0 |
+|         g_unif[1].u_unif                                                |                                            lfsr258_2 |        156 |        156 |       0 |    0 |   322 |      0 |      0 |          0 |
+|         g_unif[2].u_unif                                                |                                            lfsr258_3 |        156 |        156 |       0 |    0 |   322 |      0 |      0 |          0 |
+|         g_unif[3].u_unif                                                |                                            lfsr258_4 |        156 |        156 |       0 |    0 |   322 |      0 |      0 |          0 |
+|         u_fir                                                           |                                          channel_fir |       1936 |       1936 |       0 |    0 |  1554 |      0 |      0 |          0 |
+|         u_noise                                                         |                                            noise_gen |        396 |        332 |       0 |   64 |   833 |      4 |      0 |         12 |
+|           g_lane[0].u_lane                                              |                                           noise_lane |         99 |         83 |       0 |   16 |   203 |      0 |      0 |          3 |
+|           g_lane[1].u_lane                                              |                                         noise_lane_5 |         99 |         83 |       0 |   16 |   190 |      0 |      0 |          3 |
+|           g_lane[2].u_lane                                              |                                         noise_lane_6 |         99 |         83 |       0 |   16 |   190 |      0 |      0 |          3 |
+|           g_lane[3].u_lane                                              |                                         noise_lane_7 |         99 |         83 |       0 |   16 |   190 |      0 |      0 |          3 |
+|         u_tx                                                            |                                               tx_top |        380 |        380 |       0 |    0 |   372 |      0 |      0 |          0 |
+|           u_enc                                                         |                                               rs_enc |        311 |        311 |       0 |    0 |   310 |      0 |      0 |          0 |
+|       u_rx                                                              |                                               rx_top |       1479 |       1479 |       0 |    0 |   902 |      0 |      0 |         64 |
+|         u_ffe                                                           |                                                  ffe |       1177 |       1177 |       0 |    0 |   616 |      0 |      0 |         64 |
+|         u_dfe                                                           |                                           dfe_slicer |        295 |        295 |       0 |    0 |   271 |      0 |      0 |          0 |
+|   u_eth_rx                                                              |                                               eth_rx |        196 |        192 |       0 |    4 |   259 |      2 |      0 |          0 |
+|     u_buf                                                               |                                         frame_buffer |         66 |         66 |       0 |    0 |    64 |      1 |      0 |          0 |
+|     u_fcs                                                               |                                        eth_fcs_check |         55 |         51 |       0 |    4 |    50 |      0 |      0 |          0 |
+|     u_fifo                                                              |                                           async_fifo |         43 |         43 |       0 |    0 |   108 |      1 |      0 |          0 |
+|   u_eth_tx                                                              |                                               eth_tx |        129 |        129 |       0 |    0 |   162 |      0 |      1 |          0 |
+|     u_fifo                                                              |                           async_fifo__parameterized0 |         42 |         42 |       0 |    0 |   108 |      0 |      1 |          0 |
+|     u_mii_tx                                                            |                                               mii_tx |         87 |         87 |       0 |    0 |    54 |      0 |      0 |          0 |
+|   u_ila                                                                 |                                                u_ila |        679 |        577 |       0 |  102 |  1304 |      5 |      0 |          0 |
+|     inst                                                                |                                u_ila_ila_v6_2_19_ila |        679 |        577 |       0 |  102 |  1304 |      5 |      0 |          0 |
+|       ila_core_inst                                                     |                           u_ila_ila_v6_2_19_ila_core |        678 |        576 |       0 |  102 |  1257 |      5 |      0 |          0 |
+|         (ila_core_inst)                                                 |                           u_ila_ila_v6_2_19_ila_core |         21 |          0 |       0 |   21 |    84 |      0 |      0 |          0 |
+|         u_ila_cap_ctrl                                                  |                u_ila_ila_v6_2_19_ila_cap_ctrl_legacy |         69 |         22 |       0 |   47 |   147 |      0 |      0 |          0 |
+|           u_cap_addrgen                                                 |                    u_ila_ila_v6_2_19_ila_cap_addrgen |         54 |         17 |       0 |   37 |   141 |      0 |      0 |          0 |
+|             (u_cap_addrgen)                                             |                    u_ila_ila_v6_2_19_ila_cap_addrgen |         13 |         12 |       0 |    1 |    78 |      0 |      0 |          0 |
+|         u_ila_regs                                                      |                       u_ila_ila_v6_2_19_ila_register |        485 |        484 |       0 |    1 |   835 |      0 |      0 |          0 |
+|           (u_ila_regs)                                                  |                       u_ila_ila_v6_2_19_ila_register |        257 |        256 |       0 |    1 |   158 |      0 |      0 |          0 |
+|           U_XSDB_SLAVE                                                  |                             u_ila_xsdbs_v1_0_5_xsdbs |         76 |         76 |       0 |    0 |   213 |      0 |      0 |          0 |
+|         u_trig                                                          |                        u_ila_ila_v6_2_19_ila_trigger |         53 |         22 |       0 |   31 |    91 |      0 |      0 |          0 |
+|           U_TM                                                          |                     u_ila_ila_v6_2_19_ila_trig_match |         47 |         21 |       0 |   26 |    86 |      0 |      0 |          0 |
+|             N_DDR_MODE.G_NMU[0].U_M                                     |             u_ila_ltlib_v1_0_3_match__parameterized0 |         21 |          0 |       0 |   21 |    82 |      0 |      0 |          0 |
+|               (allx_typeA_match_detection.ltlib_v1_0_3_allx_typeA_inst) |        u_ila_ltlib_v1_0_3_allx_typeA__parameterized0 |          0 |          0 |       0 |    0 |    80 |      0 |      0 |          0 |
+|         xsdb_memory_read_inst                                           |                     u_ila_ltlib_v1_0_3_generic_memrd |         41 |         39 |       0 |    2 |    66 |      0 |      0 |          0 |
+|   u_udp_rx                                                              |                                               udp_rx |        196 |        196 |       0 |    0 |   447 |      0 |      0 |          0 |
+|   u_udp_tx                                                              |                                               udp_tx |        224 |        208 |       0 |   16 |   427 |      0 |      1 |          0 |
++-------------------------------------------------------------------------+------------------------------------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+* Note: The sum of lower-level cells may be larger than their parent cells total, due to cross-hierarchy LUT combining
+
+

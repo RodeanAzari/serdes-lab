@@ -1,0 +1,67 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date         : Tue Nov 10 13:08:14 2026
+| Host         : RodeanStation running 64-bit Ubuntu 26.04 LTS
+| Command      : report_utilization -hierarchical -file /home/rodea/serdes-lab/syn/build/noise_hist_top/utilization_hier.rpt
+| Design       : noise_hist_top
+| Device       : xc7a100tcsg324-1
+| Speed File   : -1
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++---------------------------------+----------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+|             Instance            |           Module           | Total LUTs | Logic LUTs | LUTRAMs | SRLs |  FFs  | RAMB36 | RAMB18 | DSP Blocks |
++---------------------------------+----------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+| noise_hist_top                  |                      (top) |       7696 |       7428 |       0 |  268 | 11643 |     18 |     10 |         24 |
+|   (noise_hist_top)              |                      (top) |          9 |          9 |       0 |    0 |   150 |      0 |      0 |          0 |
+|   u_core                        |            noise_hist_core |       6927 |       6679 |       0 |  248 | 10189 |     16 |      8 |         24 |
+|     u_ctrl                      |                 noise_ctrl |       3219 |       3099 |       0 |  120 |  4834 |      0 |      0 |          0 |
+|     g_noise[0].g_hist[0].u_hist |                  hist_bram |        199 |        199 |       0 |    0 |   140 |      1 |      1 |          0 |
+|     g_noise[0].g_hist[1].u_hist |                hist_bram_2 |        200 |        200 |       0 |    0 |   140 |      1 |      1 |          0 |
+|     g_noise[0].g_hist[2].u_hist |                hist_bram_3 |        206 |        206 |       0 |    0 |   143 |      1 |      1 |          0 |
+|     g_noise[0].g_hist[3].u_hist |                hist_bram_4 |        200 |        200 |       0 |    0 |   142 |      1 |      1 |          0 |
+|     g_noise[0].u_noise          |                  noise_gen |        444 |        380 |       0 |   64 |   833 |      4 |      0 |         12 |
+|       g_lane[0].u_lane          |              noise_lane_21 |        111 |         95 |       0 |   16 |   203 |      0 |      0 |          3 |
+|       g_lane[1].u_lane          |              noise_lane_22 |        111 |         95 |       0 |   16 |   190 |      0 |      0 |          3 |
+|       g_lane[2].u_lane          |              noise_lane_23 |        111 |         95 |       0 |   16 |   190 |      0 |      0 |          3 |
+|       g_lane[3].u_lane          |              noise_lane_24 |        111 |         95 |       0 |   16 |   190 |      0 |      0 |          3 |
+|     g_noise[1].g_hist[0].u_hist |                hist_bram_5 |        200 |        200 |       0 |    0 |   140 |      1 |      1 |          0 |
+|     g_noise[1].g_hist[1].u_hist |                hist_bram_6 |        201 |        201 |       0 |    0 |   140 |      1 |      1 |          0 |
+|     g_noise[1].g_hist[2].u_hist |                hist_bram_7 |        197 |        197 |       0 |    0 |   140 |      1 |      1 |          0 |
+|     g_noise[1].g_hist[3].u_hist |                hist_bram_8 |        199 |        199 |       0 |    0 |   140 |      1 |      1 |          0 |
+|     g_noise[1].u_noise          |                noise_gen_9 |        444 |        380 |       0 |   64 |   820 |      4 |      0 |         12 |
+|       g_lane[0].u_lane          |                 noise_lane |        111 |         95 |       0 |   16 |   190 |      0 |      0 |          3 |
+|       g_lane[1].u_lane          |              noise_lane_17 |        111 |         95 |       0 |   16 |   190 |      0 |      0 |          3 |
+|       g_lane[2].u_lane          |              noise_lane_18 |        111 |         95 |       0 |   16 |   190 |      0 |      0 |          3 |
+|       g_lane[3].u_lane          |              noise_lane_19 |        111 |         95 |       0 |   16 |   190 |      0 |      0 |          3 |
+|     g_unif[0].u_unif            |                    lfsr258 |        156 |        156 |       0 |    0 |   322 |      0 |      0 |          0 |
+|     g_unif[1].u_unif            |                 lfsr258_10 |        156 |        156 |       0 |    0 |   322 |      0 |      0 |          0 |
+|     g_unif[2].u_unif            |                 lfsr258_11 |        156 |        156 |       0 |    0 |   322 |      0 |      0 |          0 |
+|     g_unif[3].u_unif            |                 lfsr258_12 |        156 |        156 |       0 |    0 |   322 |      0 |      0 |          0 |
+|     g_unif[4].u_unif            |                 lfsr258_13 |        156 |        156 |       0 |    0 |   322 |      0 |      0 |          0 |
+|     g_unif[5].u_unif            |                 lfsr258_14 |        156 |        156 |       0 |    0 |   322 |      0 |      0 |          0 |
+|     g_unif[6].u_unif            |                 lfsr258_15 |        156 |        156 |       0 |    0 |   322 |      0 |      0 |          0 |
+|     g_unif[7].u_unif            |                 lfsr258_16 |        156 |        156 |       0 |    0 |   322 |      0 |      0 |          0 |
+|   u_eth_rx                      |                     eth_rx |        197 |        193 |       0 |    4 |   259 |      2 |      0 |          0 |
+|     u_buf                       |               frame_buffer |         67 |         67 |       0 |    0 |    64 |      1 |      0 |          0 |
+|     u_fcs                       |              eth_fcs_check |         55 |         51 |       0 |    4 |    50 |      0 |      0 |          0 |
+|     u_fifo                      |                 async_fifo |         43 |         43 |       0 |    0 |   108 |      1 |      0 |          0 |
+|   u_eth_tx                      |                     eth_tx |        129 |        129 |       0 |    0 |   162 |      0 |      1 |          0 |
+|     u_fifo                      | async_fifo__parameterized0 |         42 |         42 |       0 |    0 |   108 |      0 |      1 |          0 |
+|     u_mii_tx                    |                     mii_tx |         87 |         87 |       0 |    0 |    54 |      0 |      0 |          0 |
+|   u_udp_rx                      |                     udp_rx |        199 |        199 |       0 |    0 |   447 |      0 |      0 |          0 |
+|   u_udp_tx                      |                     udp_tx |        223 |        207 |       0 |   16 |   427 |      0 |      1 |          0 |
++---------------------------------+----------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+* Note: The sum of lower-level cells may be larger than their parent cells total, due to cross-hierarchy LUT combining
+
+

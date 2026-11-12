@@ -393,3 +393,6 @@ would also have failed on it.
 - **`ber_run.py capture` Ch4 24 dB: 0 of 16384 FFE samples differ from the model**
   ([csv](../data/results/ffe_capture_kr_ch4_31p4db_24db.csv)). Plot:
   docs/media/2026-11-11_phase-c_ila-ffe-eye.png (z without DFE: overlapping; v: 4 levels).
+- User confirmed the Phase B and C physical captures. Phases B and C done: reports in
+  docs/reports/{noise_hist_top-82d89d09,ber_top-70fb7cb6}/; tags `v0.2-channel` and `v0.3-rx`
+  on the same commit after `make ci` + `make sim-full` pass.
