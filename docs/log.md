@@ -396,3 +396,7 @@ would also have failed on it.
 - User confirmed the Phase B and C physical captures. Phases B and C done: reports in
   docs/reports/{noise_hist_top-82d89d09,ber_top-70fb7cb6}/; tags `v0.2-channel` and `v0.3-rx`
   on the same commit after `make ci` + `make sim-full` pass.
+- Phase D started: gates MET. fpga-rs-core `rs_decoder` meets 100 MHz, not 125 (README:
+  WNS +1.168 ns at 10 ns), and one decoder at 125 MHz would run at exactly its 1 symbol/clock
+  limit. User chose one 100 MHz domain for a new `kp4_top` (ADR 0013; 0.8 Gb/s for KP4 runs).
+  Submodule rtl/rs at rs-core-v1.0; request 0013 to P3 for "Used by". Plan in progress.md.
