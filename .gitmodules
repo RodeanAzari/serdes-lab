@@ -1,3 +1,6 @@
 [submodule "rtl/eth"]
 	path = rtl/eth
 	url = https://github.com/RodeanAzari/fpga-eth-core.git
+[submodule "rtl/rs"]
+	path = rtl/rs
+	url = https://github.com/RodeanAzari/fpga-rs-core.git
